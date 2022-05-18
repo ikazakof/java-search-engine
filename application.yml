@@ -1,0 +1,26 @@
+spring.datasource.url: jdbc:mysql://localhost:3306/search_engine?useSSL=false
+spring.datasource.username: searchEngineAdm
+spring.datasource.password: dWeg4Df!!
+spring.jpa.hibernate.ddl-auto: none
+started:
+  sites:
+  - url: https://nikoartgallery.com
+    name: Галерея Нико
+  - url: http://radiomv.ru
+    name: Радио Милицейская Волна
+  - url: https://www.lutherancathedral.ru
+    name: Кафедральный собор святых Петра и Павла
+  - url: https://ipfran.ru
+    name: ИПФ РАН
+#  - url: https://volochek.life/
+#    name: Вышний Волочек
+  field:
+    - name: title
+      selector: title
+      weight: 1.0
+    - name: body
+      selector: body
+      weight: 0.8
+user-agent:
+    name: FastSearchBot/1.0
+server.servlet.context-path: /admin
