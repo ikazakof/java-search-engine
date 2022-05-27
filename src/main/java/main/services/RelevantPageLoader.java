@@ -1,8 +1,11 @@
-package main;
+package main.services;
 
-import main.model.Index;
-import main.model.Lemma;
-import main.model.Page;
+import main.data.dto.FoundPage;
+import main.data.model.Index;
+import main.data.model.Lemma;
+import main.data.model.Page;
+import main.services.FoundPageSortByRelevanceAndUri;
+import main.services.LemmaSortByFreqAndName;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;

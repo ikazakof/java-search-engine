@@ -1,6 +1,6 @@
-package main;
+package main.services;
 
-import main.model.Lemma;
+import main.data.model.Lemma;
 
 import java.util.Comparator;
 

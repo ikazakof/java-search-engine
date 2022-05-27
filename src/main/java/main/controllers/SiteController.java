@@ -1,6 +1,12 @@
-package main;
+package main.controllers;
 
-import main.model.*;
+import main.data.dto.FoundPage;
+import main.data.model.*;
+import main.data.repository.*;
+import main.services.Lemmatizer;
+import main.services.RelevantPageLoader;
+import main.services.Search;
+import main.services.SiteCrawler;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

@@ -1,4 +1,4 @@
-package main.model;
+package main.data.model;
 
 public enum Status {
     INDEXING,

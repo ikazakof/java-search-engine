@@ -1,4 +1,6 @@
-package main;
+package main.services;
+
+import main.data.dto.FoundPage;
 
 import java.util.Comparator;
 

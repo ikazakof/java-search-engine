@@ -1,10 +1,9 @@
-package main;
+package main.services;
 
-import main.model.Page;
-
-import main.model.Site;
-import main.model.SiteRepository;
-import main.model.Status;
+import main.data.model.Page;
+import main.data.model.Site;
+import main.data.repository.SiteRepository;
+import main.data.model.Status;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -118,8 +117,6 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
     private boolean checkHref(Element href){
         return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.avi|.mpeg|.doc|.ppt|.rtf).*");
     }
-
-
 
     public String getSiteUrl() {
         return siteUrl;

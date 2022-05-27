@@ -1,8 +1,9 @@
-package main;
+package main.services;
 
-import main.model.Field;
-import main.model.Lemma;
-import main.model.Page;
+import main.data.model.Field;
+import main.data.model.Lemma;
+import main.data.model.Page;
+
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;

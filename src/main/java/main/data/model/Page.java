@@ -1,9 +1,15 @@
-package main.model;
+package main.data.model;
 
-import org.springframework.lang.NonNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+
+@NoArgsConstructor
+@Getter
+@Setter
 
 @Entity
 @Table(name = "page")
@@ -21,12 +27,6 @@ public class Page implements Serializable, Comparable<Page> {
     @Column(name = "site_id", nullable = false)
     private int siteId;
 
-    public Page(){
-    }
-
-    public Page(String path) {
-        this.path = path;
-    }
 
     public Page(String path, int siteId){
         this.path = path;
@@ -41,46 +41,6 @@ public class Page implements Serializable, Comparable<Page> {
     }
 
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public int getAnswerCode() {
-        return answerCode;
-    }
-
-    public void setAnswerCode(int answerCode) {
-        this.answerCode = answerCode;
-    }
-
-    public String getPageContent() {
-        return pageContent;
-    }
-
-    public void setPageContent(String pageContent) {
-        this.pageContent = pageContent;
-    }
-
-    public int getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(int siteId) {
-        this.siteId = siteId;
-    }
-
     @Override
     public int compareTo(Page o) {
         int compareSiteId = Integer.compare(this.siteId, o.siteId);
@@ -91,7 +51,7 @@ public class Page implements Serializable, Comparable<Page> {
         if (compareId != 0){
             return compareId;
         }
-        return this.getPath().compareTo(o.getPath());
+        return this.path.compareTo(o.path);
     }
 }
 

@@ -1,24 +1,34 @@
-package main.model;
+package main.data.model;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+
+@NoArgsConstructor
+@Getter
 
 @Entity
 @Table(name = "lemma")
 public class Lemma implements Serializable, Comparable<Lemma> {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private String lemma;
+
     @Column(nullable = false)
     private int frequency;
+
     @Column(name = "site_id", nullable = false)
     private int siteId;
 
-    public Lemma() {
-    }
+
     public Lemma(String lemma, int siteId) {
         this.lemma = lemma;
         this.siteId = siteId;
@@ -30,41 +40,9 @@ public class Lemma implements Serializable, Comparable<Lemma> {
         this.siteId = siteId;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getLemma() {
-        return lemma;
-    }
-
-    public void setLemma(String lemma) {
-        this.lemma = lemma;
-    }
-
-    public int getFrequency() {
-        return frequency;
-    }
-
     public void increaseFrequency() {this.frequency += 1;}
 
     public void decreaseFrequency() {this.frequency -= 1;}
-
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }
-
-    public int getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(int siteId) {
-        this.siteId = siteId;
-    }
 
     @Override
     public int compareTo(Lemma o) {
