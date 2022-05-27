@@ -8,10 +8,10 @@ started:
     name: Галерея Нико
   - url: http://radiomv.ru
     name: Радио Милицейская Волна
-  - url: https://www.lutherancathedral.ru
-    name: Кафедральный собор святых Петра и Павла
-  - url: https://ipfran.ru
-    name: ИПФ РАН
+#  - url: https://www.lutherancathedral.ru
+#    name: Кафедральный собор святых Петра и Павла
+#  - url: https://ipfran.ru
+#    name: ИПФ РАН
 #  - url: https://volochek.life/
 #    name: Вышний Волочек
   field:
@@ -23,4 +23,3 @@ started:
       weight: 0.8
 user-agent:
     name: FastSearchBot/1.0
-server.servlet.context-path: /admin

@@ -51,6 +51,8 @@ public class SiteController {
     @Autowired
     FieldRepository fieldRepository;
 
+
+
     @GetMapping("/startIndexing")
     public ResponseEntity startIndexing() {
         JSONParser parser = new JSONParser();
