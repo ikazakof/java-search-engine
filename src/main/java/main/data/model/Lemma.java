@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 @NoArgsConstructor
 @Getter
@@ -14,7 +15,7 @@ import java.io.Serializable;
 @Table(name = "lemma")
 public class Lemma implements Serializable, Comparable<Lemma> {
 
-
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -43,6 +44,8 @@ public class Lemma implements Serializable, Comparable<Lemma> {
     public void increaseFrequency() {this.frequency += 1;}
 
     public void decreaseFrequency() {this.frequency -= 1;}
+
+    public void increaseFrequencyByVal(int value) {this.frequency += value;}
 
     @Override
     public int compareTo(Lemma o) {

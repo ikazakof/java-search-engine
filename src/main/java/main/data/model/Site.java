@@ -40,6 +40,7 @@ public class Site  implements Serializable, Comparable<Site> {
     public Site(){
         status = Status.INDEXING;
         statusTime = LocalDateTime.now();
+        lastError = null;
     }
 
     public Site(String lastError) {

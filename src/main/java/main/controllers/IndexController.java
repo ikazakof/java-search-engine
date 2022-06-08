@@ -1,13 +1,11 @@
 package main.controllers;
 
-import main.data.dto.FoundPage;
 import main.data.model.*;
 import main.data.repository.*;
 import main.services.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.jsoup.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,12 +22,12 @@ import java.util.concurrent.ForkJoinPool;
 
 @RestController
 public class IndexController {
-    
+
     @Autowired
     StartParamList startParamList;
 
     @Value("${user-agent.name}")
-    private String userAgent;
+    String userAgent;
 
     @Autowired
     SiteRepository siteRepository;
@@ -51,13 +47,11 @@ public class IndexController {
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
-        for (Site site : siteRepository.findAll()) {
-            if (site.getStatus().equals(Status.INDEXING)) {
-                try {
-                    return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Индексация уже запущена\"\n}"), HttpStatus.OK);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+        if (SiteStatusChecker.indexingSitesExist(siteRepository)) {
+            try {
+                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Индексация уже запущена\"\n}"), HttpStatus.OK);
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
         }
 
@@ -72,9 +66,7 @@ public class IndexController {
         for (Site siteFromDB : siteRepository.findAll()) {
 
             ExecutorService executor = Executors.newSingleThreadExecutor();
-
             executor.execute(()-> {
-
                 ForkJoinPool pagingPool = new ForkJoinPool();
                 SiteCrawler siteCrawler = new SiteCrawler(siteFromDB.getUrl(), userAgent, siteRepository);
                 pagingPool.execute(siteCrawler);
@@ -82,87 +74,43 @@ public class IndexController {
                 TreeMap<String, Page> results = siteCrawler.join();
 
                 if (results.isEmpty() || siteRepository.findById(siteFromDB.getId()).get().getStatus().equals(Status.FAILED)) {
-                    siteFromDB.setStatus(Status.FAILED);
-                    siteFromDB.setLastError(siteRepository.findById(siteFromDB.getId()).get().getLastError().compareTo("Индексация принудительно остановлена") == 0 ? "Индексация принудительно остановлена" : "Сайт пуст");
-                    siteFromDB.setStatusTime(LocalDateTime.now());
-                    siteRepository.save(siteFromDB);
-
-                    results.clear();
-            } else {
-                    synchronized (pageRepository) {
-                    pageRepository.saveAll(results.values());
-                } }
-
-                List<Page> resultPagesList = new ArrayList<>();
-                results.values().forEach(page -> {
-                    if(!(page.getAnswerCode() >= 400 && page.getAnswerCode() <= 417) && !(page.getAnswerCode() >= 500 && page.getAnswerCode() <= 505)){
-                        resultPagesList.add(page);
+                    if(siteRepository.findById(siteFromDB.getId()).get().getLastError() == null){
+                        SiteConditionsChanger.changeSiteConditionsEmptyPages(siteFromDB, siteRepository);
                     }
-                });
-
-                List<Field> fieldsList = new ArrayList<>();
-                if(fieldRepository.count() != 0){
-                    fieldRepository.findAll().forEach(fieldsList::add);
-            }
+                    results.clear();
+                } else {
+                    synchronized (pageRepository) {
+                        pageRepository.saveAll(results.values());
+                    } }
 
                 ForkJoinPool lemmaPool = new ForkJoinPool();
-                Lemmatizer lemmatizer = new Lemmatizer(resultPagesList, fieldsList, siteFromDB.getId());
+                Lemmatizer lemmatizer = new Lemmatizer(ResultPageLoader.getCorrectlyResponsivePages(results.values()), fieldRepository.findAll(), siteFromDB.getId());
                 lemmaPool.execute(lemmatizer);
                 lemmaPool.shutdown();
-                TreeMap<Integer, TreeMap<Lemma, Float>> lemmResult = lemmatizer.join();
+                TreeMap<Integer, TreeMap<Lemma, Float>> lemmasResult = lemmatizer.join();
 
-                if (lemmResult.isEmpty() || siteRepository.findById(siteFromDB.getId()).get().getStatus().equals(Status.FAILED)) {
-                    siteFromDB.setStatus(Status.FAILED);
-                    siteFromDB.setLastError(siteRepository.findById(siteFromDB.getId()).get().getLastError().compareTo("Индексация принудительно остановлена") == 0 ? "Индексация принудительно остановлена" : "Леммы не найдены");
-                    siteFromDB.setStatusTime(LocalDateTime.now());
-                    siteRepository.save(siteFromDB);
-                    lemmResult.clear();
-                }
-
-                TreeMap<String, Lemma> lemmaResultToDB = new TreeMap<>();
-
-                if(lemmaRepository.count() != 0 && lemmResult.size() != 0){
-                    lemmaRepository.findAll().forEach(lemma -> {
-                        lemmaResultToDB.put(lemma.getLemma(), lemma);
-                    });
-                }
-                for (Map.Entry<Integer, TreeMap<Lemma, Float>> entry : lemmResult.entrySet()) {
-                entry.getValue().forEach((lemma, rank) -> {
-                    if (lemmaResultToDB.containsKey(lemma.getLemma())) {
-                        lemmaResultToDB.get(lemma.getLemma()).increaseFrequency();
-                    } else {
-                        lemmaResultToDB.put(lemma.getLemma(), lemma);
+                if (lemmasResult.isEmpty() || siteRepository.findById(siteFromDB.getId()).get().getStatus().equals(Status.FAILED)) {
+                    if(siteRepository.findById(siteFromDB.getId()).get().getLastError() == null){
+                        SiteConditionsChanger.changeSiteConditionsEmptyLemmas(siteFromDB, siteRepository);
                     }
-                });
-            }
-
-                    if(lemmResult.size() != 0) {
-                        synchronized (lemmaRepository) {
-                        lemmaRepository.saveAll(lemmaResultToDB.values());
-                    }
+                    lemmasResult.clear();
                 }
-
-                ArrayList<Index> indexResult = new ArrayList<>();
-
-                for(Map.Entry<Integer, TreeMap<Lemma, Float>> page : lemmResult.entrySet()){
-                   for (Map.Entry<Lemma, Float> entry : page.getValue().entrySet()){
-                       indexResult.add(new Index(page.getKey(), lemmaResultToDB.get(entry.getKey().getLemma()).getId(), entry.getValue()));
-                       siteFromDB.setStatusTime(LocalDateTime.now());
-                       siteRepository.save(siteFromDB);
-                   }
+                ResultLemmaLoader resultLemmaLoader = new ResultLemmaLoader(lemmasResult.values());
+                if(lemmasResult.size() != 0) {
+                synchronized (lemmaRepository) {
+                    lemmaRepository.saveAll(resultLemmaLoader.getLemmaResultToDB().values());
                 }
+                }
+                ArrayList<Index> indexResult = new ArrayList<>(Indexer.getIndexes(lemmasResult, resultLemmaLoader.getLemmaResultToDB() , siteRepository));
 
                 if (indexResult.isEmpty() || siteRepository.findById(siteFromDB.getId()).get().getStatus().equals(Status.FAILED)) {
-                    siteFromDB.setStatus(Status.FAILED);
-                    siteFromDB.setLastError(siteRepository.findById(siteFromDB.getId()).get().getLastError().compareTo("Индексация принудительно остановлена") == 0 ? "Индексация принудительно остановлена" : "Индексы отсутсвуют");
-                    siteFromDB.setStatusTime(LocalDateTime.now());
+                if(siteRepository.findById(siteFromDB.getId()).get().getLastError() == null){
+                    SiteConditionsChanger.changeSiteConditionsEmptyIndex(siteFromDB, siteRepository);
+                }
                 } else {
                     indexRepository.saveAll(indexResult);
-                    siteFromDB.setStatus(Status.INDEXED);
-                    siteFromDB.setStatusTime(LocalDateTime.now());
-                    siteFromDB.setLastError(null);
+                    SiteConditionsChanger.changeSiteConditionsSuccessIndexed(siteFromDB, siteRepository);
                 }
-                siteRepository.save(siteFromDB);
             });
             executor.shutdown();
         }
@@ -172,75 +120,44 @@ public class IndexController {
             e.printStackTrace();
         }
         return new ResponseEntity(result, HttpStatus.OK);
-    }
+}
 
     @GetMapping("/stopIndexing")
     public ResponseEntity stopIndexing() {
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
-        boolean indexingStart = false;
-        for (Site site : siteRepository.findAll()){
-            if (site.getStatus().equals(Status.INDEXING)){
-                indexingStart = true;
-                break;
-            }
-        }
-        if(!indexingStart){
+        if(!SiteStatusChecker.indexingSitesExist(siteRepository)){
             try {
                 return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Индексация не запущена\"\n}"), HttpStatus.OK);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
         }
-        for (Site site : siteRepository.findAll()){
-            if(site.getStatus().equals(Status.INDEXING)){
-                site.setStatus(Status.FAILED);
-                site.setLastError("Индексация принудительно остановлена");
-                siteRepository.save(site);
-            }
-        }
+        SiteConditionsChanger.changeSitesConditionStopIndex(siteRepository);
         try {
             result = (JSONObject) parser.parse("{\n\"result\": true\n}");
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return new ResponseEntity(result, HttpStatus.OK);
-
     }
 
     @PostMapping("/indexPage")
     public ResponseEntity indexPage(@RequestParam String url){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
-        boolean isPageInSiteRange = false;
-        for(Site site : siteRepository.findAll()) {
-            if (url.matches(site.getUrl() + ".*")) {
-                isPageInSiteRange = true;
-                break;
-            }
-        }
-        if(!isPageInSiteRange){
+
+        if(!IndexingPageChecker.indexingPageInRange(siteRepository, url)){
             try {
-               return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Данная страница находится за пределами сайтов,указанных в конфигурационном файле\"\n}"), HttpStatus.OK);
+                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Данная страница находится за пределами сайтов,указанных в конфигурационном файле\"\n}"), HttpStatus.OK);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-
         }
-
         ExecutorService executor = Executors.newSingleThreadExecutor();
-
         executor.execute(()-> {
             Site targetSite = new Site();
-            for(Site site : siteRepository.findAll()) {
-                if (url.matches(site.getUrl() + ".*")) {
-                   targetSite = site;
-                   break;
-                }
-            }
-            targetSite.setStatus(Status.INDEXING);
-            targetSite.setStatusTime(LocalDateTime.now());
-            siteRepository.save(targetSite);
+            SiteConditionsChanger.cloneSiteConditionPageIndexing(targetSite, url, siteRepository);
 
             String targetUrl = "";
             if(targetSite.getUrl().equals(url)){
@@ -250,115 +167,55 @@ public class IndexController {
             }
 
             Page targetPage = new Page();
-
-            for(Page page : pageRepository.findAll()){
-                Comparator<Page> comparator = Comparator.comparing(Page::getSiteId)
-                        .thenComparing(Page::getPath);
-                if(comparator.compare(page, new Page(targetUrl, targetSite.getId())) == 0){
-                    targetPage = page;
-                    break;
-                }
-            }
-
-            TreeMap<String, Lemma> existingLemmas = new TreeMap<>();
-            lemmaRepository.findAll().forEach(lemma -> {
-                existingLemmas.put(lemma.getLemma(), lemma);
-            });
+            IndexingPageClone.partiallyCloneTargetIndexingPage(targetPage, new Page(targetUrl, targetSite.getId()), pageRepository);
 
             if(targetPage.getId() != 0){
-                TreeMap<Integer, Index> existingIndexes = new TreeMap<>();
-                for (Index indexFromDB : indexRepository.findAll()){
-                    if(indexFromDB.getPageId() == targetPage.getId()){
-                        existingIndexes.put(indexFromDB.getLemmaId(), indexFromDB);
-                    }
-                }
+                TreeMap<Integer, Index> existingIndexes = new TreeMap<>(IndexLoader.loadIndexFromDB(targetPage.getId(), indexRepository));
+                TreeMap<String, Lemma> existingLemmas = new TreeMap<>(LemmasLoader.loadLemmasFromDBWithIndex(existingIndexes, lemmaRepository));
+                LemmasFrequencyReducer.reduceLemmasFrequency(existingLemmas, lemmaRepository);
                 indexRepository.deleteAll(existingIndexes.values());
-
-                existingLemmas.forEach((lemmaName, lemma) -> {
-                    if(existingIndexes.containsKey(lemma.getId())){
-                        lemma.decreaseFrequency();
-                        if(lemma.getFrequency() == 0){
-                            lemmaRepository.deleteById(lemma.getId());
-                            existingLemmas.remove(lemma.getLemma());
-                        }
-                    }
-                });
             }
 
-            Connection.Response cachedResource = null;
-
-            try {
-//                cachedResource = Jsoup.connect(url).userAgent(userAgent).referrer("http://www.google.com").ignoreHttpErrors(true).maxBodySize(0).execute();
-                targetPage.setAnswerCode(cachedResource.statusCode());
-                targetPage.setPageContent(cachedResource.parse().toString());
-                targetPage.setSiteId(targetSite.getId());
-                targetPage.setPath(targetUrl);
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
+            SiteConnector siteConnector = new SiteConnector(userAgent, url);
+            targetPage.setAnswerCode(siteConnector.getStatusCode());
+            targetPage.setPageContent(siteConnector.getSiteDocument().toString());
 
             List<Page> resultPagesList = new ArrayList<>();
-            if (!(targetPage.getAnswerCode() >= 400 && targetPage.getAnswerCode() <= 417) && !(targetPage.getAnswerCode() >= 500 && targetPage.getAnswerCode() <= 505) && !siteRepository.findById(targetSite.getId()).get().getStatus().equals(Status.FAILED))
-            {
-                resultPagesList.add(targetPage);
+            resultPagesList.add(ResultPageLoader.getCorrectlyResponsivePage(targetPage));
+            if(ResultPageLoader.getCorrectlyResponsivePage(targetPage).getId() != 0) {
                 pageRepository.save(targetPage);
             }
 
-            List<Field> fieldsList = new ArrayList<>();
-            if(fieldRepository.count() != 0){
-                fieldRepository.findAll().forEach(fieldsList::add);
-            }
-
             ForkJoinPool lemmaPool = new ForkJoinPool();
-            Lemmatizer lemmatizer = new Lemmatizer(resultPagesList, fieldsList, targetSite.getId());
+            Lemmatizer lemmatizer = new Lemmatizer(resultPagesList, fieldRepository.findAll(), targetSite.getId());
             lemmaPool.execute(lemmatizer);
             lemmaPool.shutdown();
-            TreeMap<Integer, TreeMap<Lemma, Float>> lemmResult = lemmatizer.join();
+            TreeMap<Integer, TreeMap<Lemma, Float>> lemmasResult = lemmatizer.join();
 
-            if (lemmResult.isEmpty() || siteRepository.findById(targetSite.getId()).get().getStatus().equals(Status.FAILED)) {
-                targetSite.setStatus(Status.FAILED);
-                targetSite.setLastError(siteRepository.findById(targetSite.getId()).get().getLastError().compareTo("Индексация принудительно остановлена") == 0 ? "Индексация принудительно остановлена" : "Леммы не найдены");
-                siteRepository.save(targetSite);
-                lemmResult.clear();
+            if (lemmasResult.isEmpty() || siteRepository.findById(targetSite.getId()).get().getStatus().equals(Status.FAILED)) {
+                if(siteRepository.findById(targetSite.getId()).get().getLastError() == null){
+                    SiteConditionsChanger.changeSiteConditionsEmptyLemmasOnPage(targetSite, siteRepository);
+                }
+                lemmasResult.clear();
             }
 
-            for (Map.Entry<Integer, TreeMap<Lemma, Float>> entry : lemmResult.entrySet()) {
-                entry.getValue().forEach((lemma, rank) -> {
-                    if (existingLemmas.containsKey(lemma.getLemma())) {
-                        existingLemmas.get(lemma.getLemma()).increaseFrequency();
-                    } else {
-                        existingLemmas.put(lemma.getLemma(), lemma);
-                    }
-                });
-            }
-            if(!lemmResult.isEmpty()) {
+            ResultLemmaLoader resultLemmaLoader = new ResultLemmaLoader(lemmasResult.values());
+            ResultLemmasNormalizer resultLemmasNormalizer = new ResultLemmasNormalizer(resultLemmaLoader.getLemmaResultToDB(), LemmasLoader.loadLemmasFromDB(targetSite.getId(), lemmaRepository));
+            if(lemmasResult.size() != 0) {
                 synchronized (lemmaRepository) {
-                    lemmaRepository.saveAll(existingLemmas.values());
+                    lemmaRepository.saveAll(resultLemmasNormalizer.getLemmaNormalizedResult().values());
                 }
             }
-
-            ArrayList<Index> indexResult = new ArrayList<>();
-
-            for(Map.Entry<Integer, TreeMap<Lemma, Float>> page : lemmResult.entrySet()){
-                for (Map.Entry<Lemma, Float> entry : page.getValue().entrySet()){
-                    indexResult.add(new Index(page.getKey(), existingLemmas.get(entry.getKey().getLemma()).getId(), entry.getValue()));
-                    targetSite.setStatusTime(LocalDateTime.now());
-                    siteRepository.save(targetSite);
-                }
-            }
+            ArrayList<Index> indexResult = new ArrayList<>(Indexer.getIndexes(lemmasResult, resultLemmasNormalizer.getLemmaNormalizedResult(), siteRepository));
 
             if(indexResult.isEmpty() || siteRepository.findById(targetSite.getId()).get().getStatus().equals(Status.FAILED)){
-                targetSite.setStatus(Status.FAILED);
-                targetSite.setLastError(siteRepository.findById(targetSite.getId()).get().getLastError().compareTo("Индексация принудительно остановлена") == 0 ? "Индексация принудительно остановена остановлена" : "Индексы отсутсвуют");
-                targetSite.setStatusTime(LocalDateTime.now());
+                if(siteRepository.findById(targetSite.getId()).get().getLastError() == null){
+                    SiteConditionsChanger.changeSiteConditionsEmptyIndexOnPage(targetSite, siteRepository);
+                }
             } else {
                 indexRepository.saveAll(indexResult);
-                targetSite.setStatus(Status.INDEXED);
-                targetSite.setStatusTime(LocalDateTime.now());
-                targetSite.setLastError(null);
+                SiteConditionsChanger.changeSiteConditionsSuccessIndexed(targetSite, siteRepository);
             }
-            siteRepository.save(targetSite);
-
         });
         executor.shutdown();
         try {
@@ -368,13 +225,6 @@ public class IndexController {
         }
        return new ResponseEntity(result, HttpStatus.OK);
     }
-
-
-
-
-
-
-
 }
 
 

@@ -4,13 +4,8 @@ import main.data.model.Page;
 import main.data.model.Site;
 import main.data.repository.SiteRepository;
 import main.data.model.Status;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-
-import java.io.IOException;
 import java.util.*;
 
 import java.util.concurrent.RecursiveTask;
@@ -42,21 +37,17 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
         List<SiteCrawler> tasks = new ArrayList<>();
         TreeMap<String, Page> siteUrlsAndPages = getUrlsAndPages(siteUrl);
 
-        if(!siteUrlsAndPages.isEmpty()){
-            for (Map.Entry <String, Page> urlAndPage :  siteUrlsAndPages.entrySet()){
-                if(!urlAndPage.getKey().equals(siteUrl) && !result.containsKey(urlAndPage.getKey()) && getUrlsAndPages(urlAndPage.getKey()).size() > 0) {
-                    result.put(urlAndPage.getKey(), new Page(urlAndPage.getValue().getPath(), urlAndPage.getValue().getAnswerCode(), urlAndPage.getValue().getPageContent(), parentSiteId));
-                    SiteCrawler task = new SiteCrawler(urlAndPage.getKey(), userAgent, siteRepository);
-                    task.fork();
-                    tasks.add(task);
-                } else {
-                    result.put(urlAndPage.getKey(), new Page(urlAndPage.getValue().getPath(), urlAndPage.getValue().getAnswerCode(), urlAndPage.getValue().getPageContent(), parentSiteId));
-                }
-                try {
-                    Thread.sleep(800);
-                } catch (InterruptedException exception){
-                    exception.printStackTrace();
-                }
+        if(siteUrlsAndPages.isEmpty()){
+            return result;
+        }
+        for (Map.Entry <String, Page> urlAndPage :  siteUrlsAndPages.entrySet()){
+            if(!urlAndPage.getKey().equals(siteUrl) && !result.containsKey(urlAndPage.getKey()) && getUrlsAndPages(urlAndPage.getKey()).size() > 0) {
+                result.put(urlAndPage.getKey(), new Page(urlAndPage.getValue().getPath(), urlAndPage.getValue().getAnswerCode(), urlAndPage.getValue().getPageContent(), parentSiteId));
+                SiteCrawler task = new SiteCrawler(urlAndPage.getKey(), userAgent, siteRepository);
+                task.fork();
+                tasks.add(task);
+            } else {
+                result.put(urlAndPage.getKey(), new Page(urlAndPage.getValue().getPath(), urlAndPage.getValue().getAnswerCode(), urlAndPage.getValue().getPageContent(), parentSiteId));
             }
         }
         addResultFromTasks(result, tasks);
@@ -69,61 +60,37 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
 
     private TreeMap<String, Page> getUrlsAndPages(String url){
         TreeMap<String, Page> urlsAndPages = new TreeMap<>();
-        Connection.Response cachedResource = null;
-        Document site = null;
-
-        try {
-            cachedResource = Jsoup.connect(url).userAgent(userAgent).referrer("http://www.google.com").ignoreHttpErrors(true).maxBodySize(0).execute();
-            site = cachedResource.parse();
-            for(Site siteFromDB : siteRepository.findAll()){
-                if(siteFromDB.getUrl().equals(url)){
-                    urlsAndPages.put(url, new Page("/", cachedResource.statusCode(), site.toString(), parentSiteId));
-                    break;
-                }
-            }
-        } catch (IOException exception) {
-            exception.printStackTrace();
-            System.out.println(url.toString() + " parent URL");
+        SiteConnector parentSiteConnector = new SiteConnector(userAgent, url);
+        if(parentSiteConnector.getSiteDocument() == null){
+            return new TreeMap<>();
         }
-
-        if( site != null && !siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) && site.body().select("a[href]").size() > 0){
-            for(Element href : site.body().select("a[href]")){
-                if(checkHref(href) && !urlsAndPages.containsKey(href.attr("abs:href") )){
-                    int responseCode = 0;
-                    Connection.Response childCachedResource = null;
-                    try {
-                        childCachedResource = Jsoup.connect(href.attr("abs:href")).userAgent(userAgent).referrer("http://www.google.com").ignoreHttpErrors(true).maxBodySize(0).execute();
-                        site = childCachedResource.parse();
-
-                        responseCode =  childCachedResource.statusCode();
-                        Thread.sleep(   800);
-                    } catch (IOException | InterruptedException exception) {
-                        exception.printStackTrace();
-                        System.out.println(href.toString() + " child URL");
-                    }
-
-                    if(href.attr("abs:href").compareTo(href.attr("href")) == 0){
-                        urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href").replaceAll(siteRepository.findById(parentSiteId).get().getUrl(), ""), responseCode, site.toString(), parentSiteId));
-                    } else {
-                        urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href"), responseCode, site.toString(), parentSiteId));
-                    }
-                }
+        for(Site siteFromDB : siteRepository.findAll()){
+            if(siteFromDB.getUrl().equals(url)){
+            urlsAndPages.put(url, new Page("/", parentSiteConnector.getStatusCode(), parentSiteConnector.getSiteDocument().toString(), parentSiteId));
+            break;
             }
+        }
+        if(parentSiteConnector.getSiteDocument() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
+            return new TreeMap<>();
+        }
+        for(Element href : parentSiteConnector.getSiteDocument().body().select("a[href]")){
+            if(!checkHref(href) || urlsAndPages.containsKey(href.attr("abs:href") )){
+                continue;
+            }
+
+            SiteConnector childSiteConnector = new SiteConnector(userAgent, href.attr("abs:href"));
+            if(href.attr("abs:href").compareTo(href.attr("href")) == 0){
+                urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href").replaceAll(siteRepository.findById(parentSiteId).get().getUrl(), ""), childSiteConnector.getStatusCode(), childSiteConnector.getSiteDocument().toString(), parentSiteId));
+            } else {
+                urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href"), childSiteConnector.getStatusCode(), childSiteConnector.getSiteDocument().toString(), parentSiteId));
+            }
+        }
             return urlsAndPages;
-        }
-        return new TreeMap<>();
     }
 
     private boolean checkHref(Element href){
         return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.avi|.mpeg|.doc|.ppt|.rtf).*");
     }
 
-    public String getSiteUrl() {
-        return siteUrl;
-    }
-
-    public void setSiteUrl(String siteUrl) {
-        this.siteUrl = siteUrl;
-    }
 
 }

@@ -5,14 +5,15 @@ spring.jpa.hibernate.ddl-auto: none
 started:
   sites:
   - url: https://nikoartgallery.com
+#  - /afisha
     name: Галерея Нико
-  - url: http://radiomv.ru
-    name: Радио Милицейская Волна
+#  - url: http://radiomv.ru
+#    name: Радио Милицейская Волна
 #  - url: https://www.lutherancathedral.ru
 #    name: Кафедральный собор святых Петра и Павла
 #  - url: https://ipfran.ru
 #    name: ИПФ РАН
-#  - url: https://volochek.life/
+#  - url: https://volochek.life
 #    name: Вышний Волочек
   field:
     - name: title

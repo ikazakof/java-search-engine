@@ -95,7 +95,6 @@ public class StatisticController {
             }
         }
 
-
         try {
             resultJson = (JSONObject) parser.parse(result.toString());
         } catch (ParseException e) {

@@ -47,10 +47,6 @@ public class Page implements Serializable, Comparable<Page> {
         if(compareSiteId != 0){
             return compareSiteId;
         }
-        int compareId = Integer.compare(this.id, o.id);
-        if (compareId != 0){
-            return compareId;
-        }
         return this.path.compareTo(o.path);
     }
 }

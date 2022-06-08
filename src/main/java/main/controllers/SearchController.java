@@ -33,7 +33,7 @@ public class SearchController {
 
     @GetMapping("/search")
     public ResponseEntity search(@RequestParam String query, @RequestParam(required = false)  String site, @RequestParam int offset, @RequestParam int limit) {
-
+        long start = System.currentTimeMillis();
         JSONParser parser = new JSONParser();
         JSONObject resultJson = new JSONObject();
 
@@ -236,7 +236,7 @@ public class SearchController {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
+        System.out.println((System.currentTimeMillis() - start) + " ms");
         return new ResponseEntity(resultJson, HttpStatus.OK);
     }
 
