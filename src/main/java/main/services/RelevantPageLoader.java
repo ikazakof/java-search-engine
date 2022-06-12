@@ -7,18 +7,16 @@ import main.data.model.Page;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 public class RelevantPageLoader {
 
     private List<Page> pagesFromDB;
     private List<Lemma> lemmasFromDB;
-    private TreeMap<Integer, List<Index>> foundedPages;
+    private HashMap<Integer, List<Index>> foundedPages;
     private List<FoundPage> relevantPages;
 
-    public RelevantPageLoader(List<Page> pagesFromDB, List<Lemma> lemmasFromDB, TreeMap<Integer, List<Index>> foundedPages) {
+    public RelevantPageLoader(List<Page> pagesFromDB, List<Lemma> lemmasFromDB, HashMap<Integer, List<Index>> foundedPages) {
         this.pagesFromDB = pagesFromDB;
 
         lemmasFromDB.sort(new LemmaSortByFreqAndName());
@@ -45,29 +43,22 @@ public class RelevantPageLoader {
         for(int row = 0; row < pagesFromDB.size(); row++){
             pagesRelevant[row][lemmasFromDB.size() + 2] = pagesRelevant[row][lemmasFromDB.size() + 1] / maxRelevant;
         }
-
         return pagesRelevant;
     }
 
     private ArrayList<FoundPage> getRelevantPagesList(float[][] pagesRelevant){
         ArrayList<FoundPage> relevantPages = new ArrayList<>();
-
         for(int row = 0; row < pagesFromDB.size(); row++){
             Page pageFromDB = pagesFromDB.get(row);
-
             FoundPage foundPage = new FoundPage();
             foundPage.setSiteId(pageFromDB.getSiteId());
             foundPage.setUri(pageFromDB.getPath());
             foundPage.setRelevance(pagesRelevant[row][pagesRelevant[0].length - 1]);
             foundPage.setTitle(getPageTitle(pageFromDB.getPageContent()));
-            long start = System.currentTimeMillis();
             foundPage.setSnippet(getOccurSnippet(pageFromDB.getPageContent()));
-            System.out.println((System.currentTimeMillis() - start) + " ms");
             relevantPages.add(foundPage);
         }
-        relevantPages.forEach(x-> System.out.println(x.getSnippet() + " " + x.getRelevance() + " " + "before sort"));
         relevantPages.sort(new FoundPageSortByRelevanceUriAndSiteId());
-        relevantPages.forEach(x-> System.out.println(x.getSnippet() + " " + x.getRelevance() + " " + "after sort"));
         return relevantPages;
 
     }
@@ -79,37 +70,32 @@ public class RelevantPageLoader {
 
     private String getOccurSnippet(String pageContent){
         StringBuilder result = new StringBuilder();
-        int searchWordEntry = 0;
-
-            for (String textPart : pageContent.split("\n")){
-                if(!textPart.matches(".*[А-я]+.*")){
-                    continue;
+        for (String textPart : cleanElement(pageContent).split("\n")){
+            if(!textPart.matches(".*[А-я]+.*")){
+                continue;
                 }
-                String tempTextPart = textPart.replaceAll("<.*?>", "");
-                String[] words = cleanElement(textPart).split(" ");
+                String tempTextPart = textPart;
+                String[] words = textPart.split(" ");
                 for(String part : words){
-                    if (part.isEmpty() || !part.matches("[А-я]*")){
+                    if (part.isEmpty() || !part.matches("[А-я]+")){
                         continue;
                     }
-                    List<String> getNormalForm = LemmFactory.getLemmsToRelevantPageLoader(part);
+                    HashSet<String> normalForm = LemmFactory.getLemmsToRelevantPageLoader(part);
                     for(Lemma lemma : lemmasFromDB){
-                        if(getNormalForm.contains(lemma.getLemma())){
+                        if(normalForm.contains(lemma.getLemma())){
                         tempTextPart = tempTextPart.replaceAll(part, "<b>" + part + "</b>").replaceAll("\"", "'");
-                        searchWordEntry++;
+                        break;
                         }
                     }
                 }
-                result.append((textPart.replaceAll("<.*?>", "").equals(tempTextPart)) ? "" : tempTextPart.replaceAll("(<b>){2,}", "<b>").replaceAll("(</b>){2,}", "</b>"));
-
-                if (searchWordEntry == lemmasFromDB.size() * 3){
-                    break;
-                }
+                result.append((textPart.equals(tempTextPart)) ? "" : tempTextPart);
             }
         return result.toString();
     }
 
     private String cleanElement(String string){
-        return string.replaceAll("<.*?>" ,"").replaceAll("[^А-я\\sA-z]","").replaceAll("\\s{2,}", " ").strip();
+        return string.replaceAll("<.*?>", "").replaceAll("\\s{2,}", "\n");
+
     }
 
     public List<FoundPage> getRelevantPages() {

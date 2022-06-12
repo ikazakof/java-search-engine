@@ -11,11 +11,11 @@ public class ResultLemmasNormalizer {
     @Getter
     HashMap<String, Lemma> lemmaNormalizedResult;
 
-    public ResultLemmasNormalizer(HashMap<String, Lemma> resultLemmas, TreeMap<String, Lemma> lemmasFromDb) {
+    public ResultLemmasNormalizer(HashMap<String, Lemma> resultLemmas, HashMap<String, Lemma> lemmasFromDb) {
         this.lemmaNormalizedResult = setNormalizedLemmas(resultLemmas, lemmasFromDb);
     }
 
-    public static HashMap<String, Lemma> setNormalizedLemmas(HashMap<String, Lemma> resultLemmas, TreeMap<String, Lemma> lemmasFromDb){
+    public static HashMap<String, Lemma> setNormalizedLemmas(HashMap<String, Lemma> resultLemmas, HashMap<String, Lemma> lemmasFromDb){
         HashMap<String, Lemma> resultHash = new HashMap<>();
         resultLemmas.forEach((lemmaName, lemmaVal) -> {
             if(lemmasFromDb.containsKey(lemmaName)){

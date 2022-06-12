@@ -170,8 +170,8 @@ public class IndexController {
             IndexingPageClone.partiallyCloneTargetIndexingPage(targetPage, new Page(targetUrl, targetSite.getId()), pageRepository);
 
             if(targetPage.getId() != 0){
-                TreeMap<Integer, Index> existingIndexes = new TreeMap<>(IndexLoader.loadIndexFromDB(targetPage.getId(), indexRepository));
-                TreeMap<String, Lemma> existingLemmas = new TreeMap<>(LemmasLoader.loadLemmasFromDBWithIndex(existingIndexes, lemmaRepository));
+                HashMap<Integer, Index> existingIndexes = new HashMap<>(IndexLoader.loadIndexFromDB(targetPage.getId(), indexRepository));
+                HashMap<String, Lemma> existingLemmas = new HashMap<>(LemmasLoader.loadLemmasFromDBWithIndex(existingIndexes, lemmaRepository));
                 LemmasFrequencyReducer.reduceLemmasFrequency(existingLemmas, lemmaRepository);
                 indexRepository.deleteAll(existingIndexes.values());
             }
@@ -200,7 +200,7 @@ public class IndexController {
             }
 
             ResultLemmaLoader resultLemmaLoader = new ResultLemmaLoader(lemmasResult.values());
-            ResultLemmasNormalizer resultLemmasNormalizer = new ResultLemmasNormalizer(resultLemmaLoader.getLemmaResultToDB(), LemmasLoader.loadLemmasFromDB(targetSite.getId(), lemmaRepository));
+            ResultLemmasNormalizer resultLemmasNormalizer = new ResultLemmasNormalizer(resultLemmaLoader.getLemmaResultToDB(), LemmasLoader.loadSiteLemmasFromDB(targetSite.getId(), lemmaRepository));
             if(lemmasResult.size() != 0) {
                 synchronized (lemmaRepository) {
                     lemmaRepository.saveAll(resultLemmasNormalizer.getLemmaNormalizedResult().values());

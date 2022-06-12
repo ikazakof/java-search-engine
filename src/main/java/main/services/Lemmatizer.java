@@ -78,7 +78,7 @@ public class Lemmatizer extends RecursiveTask<TreeMap<Integer, TreeMap<Lemma, Fl
                     String[] words = fieldString.split(" ");
 
                             LemmFactory lemmFactory = new LemmFactory(words);
-                            for(String lemm : lemmFactory.getLemmsToLemmatizer()){
+                            for(String lemm : lemmFactory.getLemms()){
                                 if (!result.containsKey(new Lemma(lemm, siteId))) {
                                     result.put(new Lemma(lemm, 1, siteId), fieldWeight);
                                     continue;

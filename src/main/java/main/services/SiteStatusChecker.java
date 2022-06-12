@@ -15,5 +15,13 @@ public class SiteStatusChecker {
         return false;
     }
 
+    public static boolean indexedSitesExist(SiteRepository siteRepository){
+        for (Site site : siteRepository.findAll()) {
+            if (site.getStatus().equals(Status.INDEXED)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

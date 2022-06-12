@@ -5,10 +5,11 @@ import main.data.model.Lemma;
 import main.data.repository.LemmaRepository;
 
 
-import java.util.TreeMap;
+import java.util.HashMap;
+
 
 public class LemmasFrequencyReducer {
-    public static void reduceLemmasFrequency(TreeMap<String, Lemma> existingLemmas, LemmaRepository lemmaRepository){
+    public static void reduceLemmasFrequency(HashMap<String, Lemma> existingLemmas, LemmaRepository lemmaRepository){
         existingLemmas.forEach((lemmaName, lemma) -> {
                 lemma.decreaseFrequency();
                 lemmaRepository.save(lemma);

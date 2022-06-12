@@ -80,4 +80,19 @@ public class SiteConditionsChanger {
         siteRepository.save(site);
     }
 
+    public static void cloneSiteFromDB(Site site, String url, SiteRepository siteRepository){
+
+        for(Site siteFromDB : siteRepository.findAll()) {
+            if (url.matches(siteFromDB.getUrl())) {
+                site.setId(siteFromDB.getId());
+                site.setUrl(siteFromDB.getUrl());
+                site.setName(siteFromDB.getName());
+                site.setStatus(siteFromDB.getStatus());
+                site.setLastError(siteFromDB.getLastError());
+                site.setStatusTime(siteFromDB.getStatusTime());
+                break;
+            }
+        }
+    }
+
 }

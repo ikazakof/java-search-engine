@@ -3,8 +3,7 @@ package main.controllers;
 import main.data.dto.FoundPage;
 import main.data.model.*;
 import main.data.repository.*;
-import main.services.RelevantPageLoader;
-import main.services.Search;
+import main.services.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
+import java.util.HashMap;
 
 @RestController
 public class SearchController {
@@ -33,7 +32,6 @@ public class SearchController {
 
     @GetMapping("/search")
     public ResponseEntity search(@RequestParam String query, @RequestParam(required = false)  String site, @RequestParam int offset, @RequestParam int limit) {
-        long start = System.currentTimeMillis();
         JSONParser parser = new JSONParser();
         JSONObject resultJson = new JSONObject();
 
@@ -44,20 +42,14 @@ public class SearchController {
                 e.printStackTrace();
             }
         }
-
-
         ArrayList<Index> indexesFromDB = new ArrayList<>();
-        TreeMap<Integer, Page> targetSitePages = new TreeMap<>();
-        TreeMap<Integer, Lemma> targetSiteLemmas = new TreeMap<>();
+        HashMap<Integer, Page> targetSitePages = new HashMap<>();
+        HashMap<Integer, Lemma> targetLemmas = new HashMap<>();
 
         if(site != null && !site.isEmpty()){
-
             Site targetSite = new Site();
-            for (Site siteFromDB : siteRepository.findAll()) {
-                if (siteFromDB.getUrl().equals(site)) {
-                    targetSite = siteFromDB;
-                }
-            }
+            SiteConditionsChanger.cloneSiteFromDB(targetSite, site, siteRepository);
+
             if(targetSite.getId() == 0){
                 try {
                     return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт отсутсвует в базе данных\"\n}"), HttpStatus.OK);
@@ -66,12 +58,7 @@ public class SearchController {
                 }
             }
 
-            for (Page pageFromDb : pageRepository.findAll()) {
-                if (pageFromDb.getSiteId() == targetSite.getId()){
-                    targetSitePages.put(pageFromDb.getId(), pageFromDb);
-                }
-            }
-
+            targetSitePages.putAll(PageLoader.loadSitePagesFromDB(targetSite.getId(), pageRepository));
             if(targetSitePages.size() == 0){
                 try {
                     return new ResponseEntity (parser.parse( siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет страниц в базе данных\"\n}"), HttpStatus.OK);
@@ -80,14 +67,9 @@ public class SearchController {
                 }
             }
 
+            targetLemmas.putAll(LemmasLoader.loadSiteLemmasFromDBWithFreq(targetSite.getId(), lemmaRepository, pageRepository.count()));
 
-            for(Lemma lemmaFromDB : lemmaRepository.findAll()){
-                if(lemmaFromDB.getSiteId() == targetSite.getId() && !lemmaFrequencyIsOften(lemmaFromDB)){
-                    targetSiteLemmas.put(lemmaFromDB.getId(), lemmaFromDB);
-                }
-            }
-
-            if(targetSiteLemmas.size() == 0){
+            if(targetLemmas.size() == 0){
                 try {
                     return new ResponseEntity (parser.parse(siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет лемм в базе данных\"\n}"), HttpStatus.OK);
                 } catch (ParseException e) {
@@ -95,13 +77,7 @@ public class SearchController {
                 }
             }
 
-
-            for(Index indexFromDB : indexRepository.findAll()) {
-                if (targetSitePages.containsKey(indexFromDB.getPageId())){
-                    indexesFromDB.add(indexFromDB);
-                }
-            }
-
+            indexesFromDB.addAll(IndexLoader.loadIndexFromDBByPageIdAndLemmas(targetSitePages.keySet(), indexRepository, targetLemmas.keySet()));
             if(indexesFromDB.size() == 0){
                 try {
                     return new ResponseEntity (parser.parse(siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет индексов в базе данных\"\n}"), HttpStatus.OK);
@@ -111,16 +87,7 @@ public class SearchController {
             }
         }
 
-        boolean atLeastOneSiteIndexed = false;
-        for (Site siteFromDB : siteRepository.findAll()){
-            if (siteFromDB.getStatus().equals(Status.INDEXED)) {
-                atLeastOneSiteIndexed = true;
-                break;
-            }
-        }
-
-
-        if(indexesFromDB.isEmpty() && !atLeastOneSiteIndexed){
+        if(indexesFromDB.isEmpty() && !SiteStatusChecker.indexedSitesExist(siteRepository)){
             try {
                 return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутсвуют проиндексированные сайты\"\n}"), HttpStatus.OK);
             } catch (ParseException e) {
@@ -128,28 +95,15 @@ public class SearchController {
             }
         }
 
-        if(targetSiteLemmas.isEmpty()){
-            for(Site siteFromDb : siteRepository.findAll()) {
-                if (!siteFromDb.getStatus().equals(Status.INDEXED)) {
-                    continue;
-                }
-                for (Lemma lemmaFromDB : lemmaRepository.findAll()){
-                    if(lemmaFromDB.getSiteId() == siteFromDb.getId() && !lemmaFrequencyIsOften(lemmaFromDB)){
-                        targetSiteLemmas.put(lemmaFromDB.getId(), lemmaFromDB);
-                    }
-                }
-            }
+        if(targetLemmas.isEmpty()){
+            targetLemmas.putAll(LemmasLoader.loadLemmasFromDBWithFreqAndIndexedSites(siteRepository, lemmaRepository, pageRepository.count()));
         }
 
         if(indexesFromDB.isEmpty()){
-            indexRepository.findAll().forEach(indexFromDB -> {
-                if(targetSiteLemmas.containsKey(indexFromDB.getLemmaId())){
-                    indexesFromDB.add(indexFromDB);
-                }
-            });
+            indexesFromDB.addAll(IndexLoader.loadIndexFromDBByLemmas(indexRepository, targetLemmas.keySet()));
         }
 
-        Search search = new Search(query, targetSiteLemmas.values(), indexesFromDB);
+        Search search = new Search(query, targetLemmas.values(), indexesFromDB);
         if (search.getFoundPages().isEmpty()){
             try {
                 return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутсвуют совпадения\"\n}"), HttpStatus.OK);
@@ -161,38 +115,13 @@ public class SearchController {
         ArrayList<Page> relevantPages = new ArrayList<>();
 
         if(!targetSitePages.isEmpty()){
-            targetSitePages.values().forEach(pageFromDB -> {
-                if(search.getFoundPages().containsKey(pageFromDB .getId())){
-                    relevantPages.add(pageFromDB);
-                }
-            });
+            relevantPages.addAll(PageLoader.loadPagesByIdFromTargetPages(targetSitePages, search.getFoundPages().keySet()));
         } else {
-            pageRepository.findAll().forEach(pageFromDB -> {
-                if(search.getFoundPages().containsKey(pageFromDB.getId())){
-                    relevantPages.add(pageFromDB);
-                }
-            });
+            relevantPages.addAll(PageLoader.loadPagesByIDFromPagesRepository(pageRepository, search.getFoundPages().keySet()));
         }
 
         ArrayList<Lemma> relevantLemmas = new ArrayList<>();
-
-        if(!targetSiteLemmas.isEmpty()){
-            targetSiteLemmas.values().forEach(lemmaFromDB -> {
-                search.getFoundPages().firstEntry().getValue().forEach(relevantIndex -> {
-                    if(lemmaFromDB.getId() == relevantIndex.getLemmaId()){
-                        relevantLemmas.add(lemmaFromDB);
-                    }
-                });
-            });
-        } else {
-            lemmaRepository.findAll().forEach(lemmaFromDB -> {
-                search.getFoundPages().firstEntry().getValue().forEach(relevantIndex -> {
-                    if(lemmaFromDB.getId() == relevantIndex.getLemmaId()){
-                        relevantLemmas.add(lemmaFromDB);
-                    }
-                });
-            });
-        }
+        relevantLemmas.addAll(search.getSearchLemmas());
 
         RelevantPageLoader relevantPageLoader = new RelevantPageLoader(relevantPages, relevantLemmas, search.getFoundPages());
 
@@ -236,13 +165,8 @@ public class SearchController {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        System.out.println((System.currentTimeMillis() - start) + " ms");
         return new ResponseEntity(resultJson, HttpStatus.OK);
     }
 
-
-    private boolean lemmaFrequencyIsOften(Lemma lemma){
-        return lemma.getFrequency() >= (pageRepository.count()) - (pageRepository.count() / 100) * 70;
-    }
 
 }

@@ -6,13 +6,14 @@ import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @AllArgsConstructor
 public class LemmFactory {
     String[] wordsToLemmatize;
 
-    protected List<String> getLemmsToLemmatizer(){
+    protected List<String> getLemms(){
         List<String> tempLemms = new ArrayList<>();
         List<String> resultLemms = new ArrayList<>();
         try {
@@ -44,15 +45,16 @@ public class LemmFactory {
         return lemm.substring(0, lemm.indexOf("|"));
     }
 
-    protected static List<String> getLemmsToRelevantPageLoader(String word){
-        List<String> resultLemms = new ArrayList<>();
-
+    protected static HashSet<String> getLemmsToRelevantPageLoader(String word){
+        List<String> tempLemms = new ArrayList<>();
+        HashSet<String> resultLemms = new HashSet<>();
             try {
                 LuceneMorphology luceneMorph = new RussianLuceneMorphology();
-                resultLemms.addAll(luceneMorph.getNormalForms(word.toLowerCase()));
+                tempLemms.addAll(luceneMorph.getNormalForms(word.toLowerCase()));
             } catch (IOException exception) {
                 exception.printStackTrace();
             }
+            resultLemms.addAll(tempLemms);
         return resultLemms;
         }
 
