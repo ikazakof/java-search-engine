@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 
-
 @RestController
 public class IndexController {
 
@@ -40,21 +39,11 @@ public class IndexController {
     @Autowired
     FieldRepository fieldRepository;
 
-
-
     @GetMapping("/startIndexing")
-    public ResponseEntity startIndexing() {
-        JSONParser parser = new JSONParser();
-        JSONObject result = new JSONObject();
-
+    public ResponseEntity<JSONObject> startIndexing() {
         if (SiteStatusChecker.indexingSitesExist(siteRepository)) {
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Индексация уже запущена\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            return ResponseEntityLoader.getIndexingAlreadyStartResponse();
         }
-
         siteRepository.deleteAll();
         pageRepository.deleteAll();
         lemmaRepository.deleteAll();
@@ -64,7 +53,6 @@ public class IndexController {
         siteRepository.saveAll(startParamList.getSites());
 
         for (Site siteFromDB : siteRepository.findAll()) {
-
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute(()-> {
                 ForkJoinPool pagingPool = new ForkJoinPool();
@@ -81,7 +69,7 @@ public class IndexController {
                 } else {
                     synchronized (pageRepository) {
                         pageRepository.saveAll(results.values());
-                    } }
+                    }}
 
                 ForkJoinPool lemmaPool = new ForkJoinPool();
                 Lemmatizer lemmatizer = new Lemmatizer(ResultPageLoader.getCorrectlyResponsivePages(results.values()), fieldRepository.findAll(), siteFromDB.getId());
@@ -114,45 +102,23 @@ public class IndexController {
             });
             executor.shutdown();
         }
-        try {
-            result = (JSONObject) parser.parse("{\n\"result\": true\n}");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return new ResponseEntity(result, HttpStatus.OK);
+        return ResponseEntityLoader.getControllerMethodStartResponse();
 }
 
     @GetMapping("/stopIndexing")
-    public ResponseEntity stopIndexing() {
-        JSONParser parser = new JSONParser();
-        JSONObject result = new JSONObject();
+    public ResponseEntity<JSONObject> stopIndexing() {
         if(!SiteStatusChecker.indexingSitesExist(siteRepository)){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Индексация не запущена\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+          return ResponseEntityLoader.getIndexingNotStartResponse();
         }
         SiteConditionsChanger.changeSitesConditionStopIndex(siteRepository);
-        try {
-            result = (JSONObject) parser.parse("{\n\"result\": true\n}");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return new ResponseEntity(result, HttpStatus.OK);
+
+        return ResponseEntityLoader.getControllerMethodStartResponse();
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity indexPage(@RequestParam String url){
-        JSONParser parser = new JSONParser();
-        JSONObject result = new JSONObject();
-
+    public ResponseEntity<JSONObject> indexPage(@RequestParam String url){
         if(!IndexingPageChecker.indexingPageInRange(siteRepository, url)){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Данная страница находится за пределами сайтов,указанных в конфигурационном файле\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            return ResponseEntityLoader.getPageOutOfRangeResponse();
         }
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(()-> {
@@ -218,12 +184,7 @@ public class IndexController {
             }
         });
         executor.shutdown();
-        try {
-            result = (JSONObject) parser.parse("{\n\"result\": true\n}");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-       return new ResponseEntity(result, HttpStatus.OK);
+       return ResponseEntityLoader.getControllerMethodStartResponse();
     }
 }
 

@@ -32,15 +32,8 @@ public class SearchController {
 
     @GetMapping("/search")
     public ResponseEntity search(@RequestParam String query, @RequestParam(required = false)  String site, @RequestParam int offset, @RequestParam int limit) {
-        JSONParser parser = new JSONParser();
-        JSONObject resultJson = new JSONObject();
-
         if (query == null || query.isEmpty()){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутствует поисковый запрос\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            return ResponseEntityLoader.getEmptySearchQueryResponse();
         }
         ArrayList<Index> indexesFromDB = new ArrayList<>();
         HashMap<Integer, Page> targetSitePages = new HashMap<>();
@@ -51,48 +44,28 @@ public class SearchController {
             SiteConditionsChanger.cloneSiteFromDB(targetSite, site, siteRepository);
 
             if(targetSite.getId() == 0){
-                try {
-                    return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт отсутсвует в базе данных\"\n}"), HttpStatus.OK);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                return ResponseEntityLoader.getSiteNotFoundResponse();
             }
 
             targetSitePages.putAll(PageLoader.loadSitePagesFromDB(targetSite.getId(), pageRepository));
             if(targetSitePages.size() == 0){
-                try {
-                    return new ResponseEntity (parser.parse( siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет страниц в базе данных\"\n}"), HttpStatus.OK);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+               return ResponseEntityLoader.getSiteIndexingOrEmptyPagesResponse(siteRepository, targetSite);
             }
 
             targetLemmas.putAll(LemmasLoader.loadSiteLemmasFromDBWithFreq(targetSite.getId(), lemmaRepository, pageRepository.count()));
 
             if(targetLemmas.size() == 0){
-                try {
-                    return new ResponseEntity (parser.parse(siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет лемм в базе данных\"\n}"), HttpStatus.OK);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+               ResponseEntityLoader.getSiteIndexingOrEmptyLemmasResponse(siteRepository, targetSite);
             }
 
             indexesFromDB.addAll(IndexLoader.loadIndexFromDBByPageIdAndLemmas(targetSitePages.keySet(), indexRepository, targetLemmas.keySet()));
             if(indexesFromDB.size() == 0){
-                try {
-                    return new ResponseEntity (parser.parse(siteRepository.findById(targetSite.getId()).get().getStatus().compareTo(Status.INDEXING) == 0 ? "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт индексируется, попробуйте позже\"\n}" : "{\n\"result\": false,\n\"error\": \"Запрашиваемый сайт не имеет индексов в базе данных\"\n}"), HttpStatus.OK);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                ResponseEntityLoader.getSiteIndexingOrEmptyIndexesResponse(siteRepository, targetSite);
             }
         }
 
         if(indexesFromDB.isEmpty() && !SiteStatusChecker.indexedSitesExist(siteRepository)){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутсвуют проиндексированные сайты\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+           ResponseEntityLoader.getIndexedSitesNotFoundResponse();
         }
 
         if(targetLemmas.isEmpty()){
@@ -105,11 +78,7 @@ public class SearchController {
 
         Search search = new Search(query, targetLemmas.values(), indexesFromDB);
         if (search.getFoundPages().isEmpty()){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутсвуют совпадения\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            ResponseEntityLoader.getSearchMatchesNotFoundResponse();
         }
 
         ArrayList<Page> relevantPages = new ArrayList<>();
@@ -126,47 +95,10 @@ public class SearchController {
         RelevantPageLoader relevantPageLoader = new RelevantPageLoader(relevantPages, relevantLemmas, search.getFoundPages());
 
         if (relevantPageLoader.getRelevantPages().isEmpty()){
-            try {
-                return new ResponseEntity (parser.parse("{\n\"result\": false,\n\"error\": \"Отсутсвует вывод найденных совпадений\"\n}"), HttpStatus.OK);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            ResponseEntityLoader.getRelevantPagesNotFoundResponse();
         }
 
-        ArrayList<FoundPage> foundPages = new ArrayList<>(relevantPageLoader.getRelevantPages());
-
-        StringBuilder result = new StringBuilder();
-        result.append("{\n\"result\": true,\n \"count\": ").append(relevantPageLoader.getRelevantPages().size()).append(",\n \"data\": [\n");
-
-        int pageLimit = (limit == 0 ? 20 + offset : limit + offset);
-        if(pageLimit > relevantPageLoader.getRelevantPages().size()){
-            pageLimit = relevantPageLoader.getRelevantPages().size();
-        }
-        if(offset > relevantPageLoader.getRelevantPages().size()){
-            offset = 0;
-        }
-
-        for (; offset < pageLimit; offset++){
-
-            result.append("{\n \"site\": \"").append(siteRepository.findById(foundPages.get(offset).getSiteId()).get().getUrl()).append("\",\n");
-            result.append("\"siteName\": \"").append(siteRepository.findById(foundPages.get(offset).getSiteId()).get().getName()).append("\",\n");
-            result.append("\"uri\": \"").append(foundPages.get(offset).getUri()).append("\",\n");
-            result.append("\"title\": \"").append(foundPages.get(offset).getTitle()).append("\",\n");
-            result.append("\"snippet\": \"").append(foundPages.get(offset).getSnippet()).append("\",\n");
-            result.append("\"relevance\": \"").append(foundPages.get(offset).getRelevance()).append("\"\n}");
-            if(offset != pageLimit - 1){
-                result.append(",\n");
-            }
-        }
-        result.append("\n]\n}");
-
-        try {
-            resultJson = (JSONObject) parser.parse(result.toString());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return new ResponseEntity(resultJson, HttpStatus.OK);
+        SearchResultEntityLoader searchResultEntityLoader = new SearchResultEntityLoader(siteRepository);
+        return searchResultEntityLoader.getSearchResultJson(limit, offset, relevantPageLoader.getRelevantPages());
     }
-
-
 }
