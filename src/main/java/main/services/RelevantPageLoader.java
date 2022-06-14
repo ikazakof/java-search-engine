@@ -12,7 +12,9 @@ import java.util.*;
 public class RelevantPageLoader {
 
     private List<Page> pagesFromDB;
-    private List<Lemma> lemmasFromDB;
+    private HashMap<String, Lemma> lemmasHashFromDB;
+
+    private int searchedSites;
     private HashMap<Integer, List<Index>> foundedPages;
     private List<FoundPage> relevantPages;
 
@@ -20,28 +22,32 @@ public class RelevantPageLoader {
         this.pagesFromDB = pagesFromDB;
 
         lemmasFromDB.sort(new LemmaSortByFreqAndName());
-        this.lemmasFromDB = lemmasFromDB;
+        lemmasHashFromDB = new HashMap<>();
+        lemmasFromDB.forEach(lemma -> this.lemmasHashFromDB.put(lemma.getLemma(), lemma));
         this.foundedPages = foundedPages;
-
+        HashSet<Integer> searchSites = new HashSet<>();
+        lemmasFromDB.forEach(lemma -> searchSites.add(lemma.getSiteId()));
+        this.searchedSites = searchSites.size();
         this.relevantPages = getRelevantPagesList(getRelevant());
     }
 
     private float[][] getRelevant(){
-        float[][] pagesRelevant = new float[pagesFromDB.size()][lemmasFromDB.size() + 3];
+        int lemmOnPageCounter =  lemmasHashFromDB.size();
+        float[][] pagesRelevant = new float[pagesFromDB.size()][lemmOnPageCounter + 3];
         float maxRelevant = 0;
         for(int row = 0; row < pagesFromDB.size(); row++){
             float absoluteRelevant = 0;
             pagesRelevant[row][0] = pagesFromDB.get(row).getId();
-            for(int column = 1; column < lemmasFromDB.size() + 1; column++){
+            for(int column = 1; column < lemmOnPageCounter + 1; column++){
                 pagesRelevant[row][column] = foundedPages.get(pagesFromDB.get(row).getId()).get(column - 1).getRank();
                 absoluteRelevant += foundedPages.get(pagesFromDB.get(row).getId()).get(column - 1).getRank();
             }
-            pagesRelevant[row][lemmasFromDB.size() + 1] = absoluteRelevant;
+            pagesRelevant[row][lemmOnPageCounter + 1] = absoluteRelevant;
             maxRelevant = Math.max(maxRelevant, absoluteRelevant);
         }
 
         for(int row = 0; row < pagesFromDB.size(); row++){
-            pagesRelevant[row][lemmasFromDB.size() + 2] = pagesRelevant[row][lemmasFromDB.size() + 1] / maxRelevant;
+            pagesRelevant[row][lemmOnPageCounter + 2] = pagesRelevant[row][lemmOnPageCounter + 1] / maxRelevant;
         }
         return pagesRelevant;
     }
@@ -70,32 +76,41 @@ public class RelevantPageLoader {
 
     private String getOccurSnippet(String pageContent){
         StringBuilder result = new StringBuilder();
-        for (String textPart : cleanElement(pageContent).split("\n")){
-            if(!textPart.matches(".*[А-я]+.*")){
-                continue;
+        ArrayList<String> cleanSplittedContent = cleanElements(pageContent.split("\n"));
+
+        List<String> wordsList = new ArrayList<>();
+        for(String textPart : cleanSplittedContent){
+            for(String part : textPart.split(" ")){
+                if (part.isEmpty() || !part.matches("[А-я]+")){
+                    continue;
                 }
-                String tempTextPart = textPart;
-                String[] words = textPart.split(" ");
-                for(String part : words){
-                    if (part.isEmpty() || !part.matches("[А-я]+")){
-                        continue;
-                    }
-                    HashSet<String> normalForm = LemmFactory.getLemmsToRelevantPageLoader(part);
-                    for(Lemma lemma : lemmasFromDB){
-                        if(normalForm.contains(lemma.getLemma())){
-                        tempTextPart = tempTextPart.replaceAll(part, "<b>" + part + "</b>").replaceAll("\"", "'");
-                        break;
-                        }
-                    }
+                wordsList.add(part);
+            }
+        }
+        HashMap<String, String> normalForm;
+        normalForm = LemmFactory.getLemmsToRelevantPageLoader(wordsList);
+
+        for (String textPart : cleanSplittedContent){
+            String tempTextPart = textPart;
+            for(Map.Entry<String, String> wordFromCleanPage : normalForm.entrySet()){
+                if (lemmasHashFromDB.containsKey(wordFromCleanPage.getValue()) && textPart.contains(wordFromCleanPage.getKey())){
+                    tempTextPart = tempTextPart.replaceAll( "\\b" + wordFromCleanPage.getKey() + "\\b", "<b>" + wordFromCleanPage.getKey() + "</b>").replaceAll("\"", "'");
                 }
-                result.append((textPart.equals(tempTextPart)) ? "" : tempTextPart);
+            }
+            result.append((textPart.equals(tempTextPart)) ? "" : tempTextPart);
             }
         return result.toString();
     }
 
-    private String cleanElement(String string){
-        return string.replaceAll("<.*?>", "").replaceAll("\\s{2,}", "\n");
-
+    private ArrayList<String> cleanElements(String[] elements){
+        ArrayList<String> cleanElementsList = new ArrayList<>();
+        for(String element : elements){
+            String tempElement = element.replaceAll("&nbsp;", " ").replaceAll("(<.*?>|<!--.*?-->|/\\*.*?\\*/|[^А-я\\sA-z])", "").replaceAll("\\s{2,}", " ").strip();
+            if(tempElement.matches(".*[А-я]+.*")){
+                cleanElementsList.add(tempElement);
+            }
+        }
+        return cleanElementsList;
     }
 
     public List<FoundPage> getRelevantPages() {

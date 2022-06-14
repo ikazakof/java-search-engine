@@ -2,17 +2,12 @@ package main.services;
 
 import main.data.model.Index;
 import main.data.model.Lemma;
-import main.services.LemmaSortByFreqAndName;
-import org.apache.lucene.morphology.LuceneMorphology;
-import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
-
-import java.io.IOException;
 import java.util.*;
 
 public class Search {
 
     private String searchPhrase;
-    private HashMap<String, Lemma> lemmasFromDB;
+    private Collection<Lemma> lemmasFromDB;
     private List<Index> indexFromDB;
     private List<Lemma> searchLemmas;
     private HashMap<Integer, List<Index>> foundPages;
@@ -20,8 +15,7 @@ public class Search {
 
     public Search(String searchPhrase, Collection<Lemma> lemmasFromDB, ArrayList<Index> indexFromDB) {
         this.searchPhrase = searchPhrase;
-        this.lemmasFromDB = new HashMap<>();
-        lemmasFromDB.forEach(lemma -> this.lemmasFromDB.put(lemma.getLemma(), lemma));
+        this.lemmasFromDB = lemmasFromDB;
         this.indexFromDB = indexFromDB;
 
         this.searchLemmas = separateLemmas();
@@ -39,10 +33,14 @@ public class Search {
     private List<Lemma> separateLemmas(){
         String[] phraseWords = cleanSearchPhrase(searchPhrase).split(" ");
 
+        HashSet<String> lemmas = new HashSet<>();
+        new LemmFactory(phraseWords).getLemms().forEach(lemma -> lemmas.add(lemma));
         List<Lemma> lemmaForSearch = new ArrayList<>();
-
-        new LemmFactory(phraseWords).getLemms().forEach(tempLemma ->
-                lemmaForSearch.add(lemmasFromDB.get(tempLemma)));
+        lemmasFromDB.forEach(lemma -> {
+            if(lemmas.contains(lemma.getLemma())){
+               lemmaForSearch.add(lemma);
+            }
+        });
 
         lemmaForSearch.sort(new LemmaSortByFreqAndName());
         return lemmaForSearch;
@@ -73,9 +71,12 @@ public class Search {
         tempIndex.add(foundIndex);
         tempRelevantPages.put(foundIndex.getPageId(),tempIndex);
         }
+        HashSet<Integer> searchSites = new HashSet<>();
+        searchLemmas.forEach(lemma -> searchSites.add(lemma.getSiteId()));
+
         HashMap<Integer, List<Index>> resultPages = new HashMap<>();
         tempRelevantPages.forEach((page, indexes) ->{
-            if(indexes.size() == searchLemmas.size()){
+            if(indexes.size() == searchPhrase.split(" ").length){
                 resultPages.put(page, indexes);
             }
         });

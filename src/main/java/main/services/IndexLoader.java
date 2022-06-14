@@ -6,7 +6,7 @@ import main.data.model.Lemma;
 import main.data.repository.IndexRepository;
 
 import java.util.*;
-;
+
 
 public class IndexLoader {
     @Getter
@@ -41,7 +41,7 @@ public class IndexLoader {
         }
         return existingIndexes;
     }
-//by lemma ID need
+
     public static ArrayList<Index> loadIndexFromListByLemmas(List<Index> indexList, List<Lemma> searchLemmas){
         ArrayList<Index> existingIndexes = new ArrayList<>();
         HashSet<Integer> searchLemmasId = new HashSet<>();
