@@ -1,6 +1,6 @@
 package main.services;
 
-import main.data.dto.FoundPage;
+
 import main.data.model.Site;
 import main.data.model.Status;
 import main.data.repository.SiteRepository;
@@ -10,8 +10,6 @@ import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
-import java.util.List;
 
 public class ResponseEntityLoader {
 

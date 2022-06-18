@@ -50,17 +50,17 @@ public class SearchController {
             targetLemmas.putAll(LemmasLoader.loadSiteLemmasFromDBWithFreq(targetSite.getId(), lemmaRepository, pageRepository.count()));
 
             if(targetLemmas.size() == 0){
-               ResponseEntityLoader.getSiteIndexingOrEmptyLemmasResponse(siteRepository, targetSite);
+                return  ResponseEntityLoader.getSiteIndexingOrEmptyLemmasResponse(siteRepository, targetSite);
             }
 
             indexesFromDB.addAll(IndexLoader.loadIndexFromDBByPageIdAndLemmas(targetSitePages.keySet(), indexRepository, targetLemmas.keySet()));
             if(indexesFromDB.size() == 0){
-                ResponseEntityLoader.getSiteIndexingOrEmptyIndexesResponse(siteRepository, targetSite);
+                return  ResponseEntityLoader.getSiteIndexingOrEmptyIndexesResponse(siteRepository, targetSite);
             }
         }
 
         if(indexesFromDB.isEmpty() && !SiteStatusChecker.indexedSitesExist(siteRepository)){
-           ResponseEntityLoader.getIndexedSitesNotFoundResponse();
+            return ResponseEntityLoader.getIndexedSitesNotFoundResponse();
         }
 
         if(targetLemmas.isEmpty()){
@@ -70,7 +70,7 @@ public class SearchController {
 
         Search search = new Search(query, targetLemmas.values(), indexesFromDB);
         if (search.getFoundPages().isEmpty()){
-            ResponseEntityLoader.getSearchMatchesNotFoundResponse();
+            return ResponseEntityLoader.getSearchMatchesNotFoundResponse();
         }
 
         ArrayList<Page> relevantPages = new ArrayList<>();
@@ -87,7 +87,7 @@ public class SearchController {
         RelevantPageLoader relevantPageLoader = new RelevantPageLoader(relevantPages, relevantLemmas, search.getFoundPages());
 
         if (relevantPageLoader.getRelevantPages().isEmpty()){
-            ResponseEntityLoader.getRelevantPagesNotFoundResponse();
+            return  ResponseEntityLoader.getRelevantPagesNotFoundResponse();
         }
 
         SearchResultEntityLoader searchResultEntityLoader = new SearchResultEntityLoader(siteRepository);

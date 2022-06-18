@@ -1,6 +1,5 @@
 package main.services;
 
-import lombok.Getter;
 import main.data.model.Index;
 import main.data.model.Lemma;
 import main.data.repository.IndexRepository;
@@ -9,8 +8,6 @@ import java.util.*;
 
 
 public class IndexLoader {
-    @Getter
-    HashMap<Integer, Index> existingIndexes;
 
     public static HashMap<Integer, Index> loadIndexFromDB(int pageId, IndexRepository indexRepository){
         HashMap<Integer, Index> existingIndexes = new HashMap<>();
