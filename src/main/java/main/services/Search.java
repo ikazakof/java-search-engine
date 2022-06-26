@@ -52,7 +52,7 @@ public class Search {
         return searchPhrase.replaceAll("\n", "").replaceAll("[^А-я\\s]","").replaceAll("\\s{2,}", " ").strip().toLowerCase();
     }
 
-    public HashMap<Integer, List<Index>> searchRelevantPages(List<Lemma> searchLemmas){
+    private HashMap<Integer, List<Index>> searchRelevantPages(List<Lemma> searchLemmas){
         if(searchLemmas.isEmpty()){
             return new HashMap<>();
         }

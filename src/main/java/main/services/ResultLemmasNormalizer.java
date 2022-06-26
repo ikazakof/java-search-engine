@@ -14,7 +14,7 @@ public class ResultLemmasNormalizer {
         this.lemmaNormalizedResult = setNormalizedLemmas(resultLemmas, lemmasFromDb);
     }
 
-    public static HashMap<String, Lemma> setNormalizedLemmas(HashMap<String, Lemma> resultLemmas, HashMap<String, Lemma> lemmasFromDb){
+    private HashMap<String, Lemma> setNormalizedLemmas(HashMap<String, Lemma> resultLemmas, HashMap<String, Lemma> lemmasFromDb){
         HashMap<String, Lemma> resultHash = new HashMap<>();
         resultLemmas.forEach((lemmaName, lemmaVal) -> {
             if(lemmasFromDb.containsKey(lemmaName)){

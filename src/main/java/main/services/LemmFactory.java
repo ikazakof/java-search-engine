@@ -45,13 +45,13 @@ public class LemmFactory {
         return lemm.substring(0, lemm.indexOf("|"));
     }
 
-    protected static HashMap<String, String> getLemmsToRelevantPageLoader(List<String> words){
+    protected HashMap<String, String> getLemmsToRelevantPageLoader(){
         HashMap<String, String> resultLemmsAndBaseWords = new HashMap<>();
             try {
                 LuceneMorphology luceneMorph = new RussianLuceneMorphology();
-                words.forEach(word ->{
+                for(String word : wordsToLemmatize){
                     luceneMorph.getNormalForms(word.toLowerCase()).forEach(normalForm -> resultLemmsAndBaseWords.put(word , normalForm));
-                });
+                }
             } catch (IOException exception) {
                 exception.printStackTrace();
             }

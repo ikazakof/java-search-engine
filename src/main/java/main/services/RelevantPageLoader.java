@@ -88,7 +88,8 @@ public class RelevantPageLoader {
             }
         }
         HashMap<String, String> normalForm;
-        normalForm = LemmFactory.getLemmsToRelevantPageLoader(wordsList);
+        LemmFactory lemmFactory = new LemmFactory(wordsList.toArray(String[]::new));
+        normalForm = lemmFactory.getLemmsToRelevantPageLoader();
 
         for (String textPart : cleanSplittedContent){
             String tempTextPart = textPart;

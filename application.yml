@@ -11,10 +11,10 @@ started:
     name: Радио Милицейская Волна
 #  - url: https://www.lutherancathedral.ru
 #    name: Кафедральный собор святых Петра и Павла
-#  - url: https://ipfran.ru
-#    name: ИПФ РАН
-#  - url: https://volochek.life
-#    name: Вышний Волочек
+  - url: https://ipfran.ru
+    name: ИПФ РАН
+  - url: https://volochek.life
+    name: Вышний Волочек
   field:
     - name: title
       selector: title

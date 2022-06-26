@@ -1,15 +1,23 @@
 package main.services;
 
+import lombok.NoArgsConstructor;
 import main.data.model.Page;
 import main.data.repository.PageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+@Component
+@NoArgsConstructor
 public class PageLoader {
 
-    public static HashMap<Integer, Page> loadSitePagesFromDB(int siteId, PageRepository pageRepository){
+    @Autowired
+    PageRepository pageRepository;
+
+    public HashMap<Integer, Page> loadSitePagesFromDB(int siteId){
         HashMap<Integer, Page> result = new HashMap<>();
         for (Page pageFromDb : pageRepository.findAll()) {
             if (pageFromDb.getSiteId() == siteId){
@@ -19,13 +27,13 @@ public class PageLoader {
         return result;
     }
 
-    public static ArrayList<Page> loadPagesByIdFromTargetPages(HashMap<Integer, Page> targetSitePages, Set<Integer> pageIds){
+    public ArrayList<Page> loadPagesByIdFromTargetPages(HashMap<Integer, Page> targetSitePages, Set<Integer> pageIds){
         ArrayList<Page> result = new ArrayList<>();
         pageIds.forEach(id -> result.add(targetSitePages.get(id)));
         return result;
     }
 
-    public static ArrayList<Page> loadPagesByIDFromPagesRepository(PageRepository pageRepository, Set<Integer> pageIds){
+    public ArrayList<Page> loadPagesByIDFromPagesRepository(Set<Integer> pageIds){
         ArrayList<Page> result = new ArrayList<>();
         pageIds.forEach(id -> result.add(pageRepository.findById(id).get()));
         return result;

@@ -32,6 +32,8 @@ public class SearchServices {
     IndexLoader indexLoader;
     @Autowired
     LemmasLoader lemmasLoader;
+    @Autowired
+    PageLoader pageLoader;
 
 
     public ResponseEntity<JSONObject> getMatchesInSite(String site, String query){
@@ -45,7 +47,7 @@ public class SearchServices {
             return responseEntityLoader.getSiteNotFoundResponse();
         }
 
-        targetSitePages.putAll(PageLoader.loadSitePagesFromDB(targetSite.getId(), pageRepository));
+        targetSitePages.putAll(pageLoader.loadSitePagesFromDB(targetSite.getId()));
         if(targetSitePages.size() == 0){
             return responseEntityLoader.getSiteIndexingOrEmptyPagesResponse(targetSite);
         }
@@ -65,7 +67,7 @@ public class SearchServices {
             return responseEntityLoader.getSearchMatchesNotFoundResponse();
         }
         ArrayList<Page> relevantPages = new ArrayList<>();
-        relevantPages.addAll(PageLoader.loadPagesByIdFromTargetPages(targetSitePages, search.getFoundPages().keySet()));
+        relevantPages.addAll(pageLoader.loadPagesByIdFromTargetPages(targetSitePages, search.getFoundPages().keySet()));
 
         ArrayList<Lemma> relevantLemmas = new ArrayList<>();
         relevantLemmas.addAll(search.getSearchLemmas());
@@ -95,7 +97,7 @@ public class SearchServices {
         }
 
         ArrayList<Page> relevantPages = new ArrayList<>();
-        relevantPages.addAll(PageLoader.loadPagesByIDFromPagesRepository(pageRepository, search.getFoundPages().keySet()));
+        relevantPages.addAll(pageLoader.loadPagesByIDFromPagesRepository(search.getFoundPages().keySet()));
 
         ArrayList<Lemma> relevantLemmas = new ArrayList<>();
         relevantLemmas.addAll(search.getSearchLemmas());

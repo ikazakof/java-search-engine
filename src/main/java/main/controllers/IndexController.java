@@ -28,6 +28,8 @@ public class IndexController {
     IndexingServices indexingServices;
     @Autowired
     SiteConditionsChanger siteConditionsChanger;
+    @Autowired
+    IndexingPageChecker indexingPageChecker;
 
 
     @GetMapping("/startIndexing")
@@ -56,7 +58,7 @@ public class IndexController {
 
     @PostMapping("/indexPage")
     public ResponseEntity<JSONObject> indexPage(@RequestParam String url){
-        if(!IndexingPageChecker.indexingPageInRange(siteRepository, url)){
+        if(!indexingPageChecker.indexingPageInRange(url)){
             return responseEntityLoader.getPageOutOfRangeResponse();
         }
         ExecutorService executor = Executors.newSingleThreadExecutor();
