@@ -1,7 +1,6 @@
 package main.services;
 
 import main.data.model.Lemma;
-
 import java.util.Comparator;
 
 public class LemmaSortByFreqAndName implements Comparator<Lemma> {

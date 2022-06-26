@@ -1,45 +1,50 @@
 package main.services;
 
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import main.data.model.Site;
 import main.data.model.Status;
 import main.data.repository.SiteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-
+@Component
+@NoArgsConstructor
 public class SiteConditionsChanger {
 
+    @Autowired
+    SiteRepository siteRepository;
 
-    public static void changeSiteConditionsEmptyPages(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsEmptyPages(Site site){
             site.setStatus(Status.FAILED);
             site.setLastError("Страницы отсутсвуют");
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
     }
 
-    public static void changeSiteConditionsEmptyLemmas(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsEmptyLemmas(Site site){
             site.setStatus(Status.FAILED);
             site.setLastError("Леммы отсутсвуют");
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
     }
 
-    public static void changeSiteConditionsEmptyIndex(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsEmptyIndex(Site site){
             site.setStatus(Status.FAILED);
             site.setLastError("Индексы отсутсвуют");
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
     }
 
-    public static void changeSiteConditionsSuccessIndexed(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsSuccessIndexed(Site site){
         site.setStatus(Status.INDEXED);
         site.setStatusTime(LocalDateTime.now());
         site.setLastError(null);
         siteRepository.save(site);
     }
 
-    public static void changeSitesConditionStopIndex(SiteRepository siteRepository){
+    public void changeSitesConditionStopIndex(){
         for (Site site : siteRepository.findAll()){
             if(site.getStatus().equals(Status.INDEXING)){
                 site.setStatus(Status.FAILED);
@@ -50,7 +55,7 @@ public class SiteConditionsChanger {
         }
     }
 
-    public static void cloneSiteConditionPageIndexing(Site site, String url, SiteRepository siteRepository){
+    public void cloneSiteConditionPageIndexing(Site site, String url){
 
         for(Site siteFromDB : siteRepository.findAll()) {
             if (url.matches(siteFromDB.getUrl() + ".*")) {
@@ -66,21 +71,21 @@ public class SiteConditionsChanger {
         }
     }
 
-    public static void changeSiteConditionsEmptyLemmasOnPage(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsEmptyLemmasOnPage(Site site){
         site.setStatus(Status.FAILED);
         site.setLastError("На индексируемой странице леммы отсутсвуют");
         site.setStatusTime(LocalDateTime.now());
         siteRepository.save(site);
     }
 
-    public static void changeSiteConditionsEmptyIndexOnPage(Site site, SiteRepository siteRepository){
+    public void changeSiteConditionsEmptyIndexOnPage(Site site){
         site.setStatus(Status.FAILED);
         site.setLastError("На индексируемой странице индексы отсутсвуют");
         site.setStatusTime(LocalDateTime.now());
         siteRepository.save(site);
     }
 
-    public static void cloneSiteFromDB(Site site, String url, SiteRepository siteRepository){
+    public void cloneSiteFromDB(Site site, String url){
 
         for(Site siteFromDB : siteRepository.findAll()) {
             if (url.matches(siteFromDB.getUrl())) {

@@ -1,11 +1,19 @@
 package main.services;
 
+import lombok.NoArgsConstructor;
 import main.data.model.Page;
 import main.data.repository.PageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@NoArgsConstructor
 public class IndexingPageClone {
 
-    public static void partiallyCloneTargetIndexingPage(Page targetPage, Page searchPage, PageRepository pageRepository){
+    @Autowired
+    PageRepository pageRepository;
+
+    public void partiallyCloneTargetIndexingPage(Page targetPage, Page searchPage){
         for(Page page : pageRepository.findAll()){
             if(page.compareTo(searchPage) == 0){
                 targetPage.setId(page.getId());

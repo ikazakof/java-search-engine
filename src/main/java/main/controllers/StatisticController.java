@@ -1,7 +1,5 @@
 package main.controllers;
 
-import main.data.repository.LemmaRepository;
-import main.data.repository.PageRepository;
 import main.data.repository.SiteRepository;
 import main.services.StatisticControllerEntityLoader;
 import org.json.simple.JSONObject;
@@ -18,17 +16,14 @@ public class StatisticController {
     @Autowired
     SiteRepository siteRepository;
     @Autowired
-    PageRepository pageRepository;
-    @Autowired
-    LemmaRepository lemmaRepository;
-
+    StatisticControllerEntityLoader statisticControllerEntityLoader;
 
     @GetMapping("/statistics")
     public ResponseEntity<JSONObject> statistics() {
         if(siteRepository.count() == 0){
-           return StatisticControllerEntityLoader.getEmptyStatisticsEntity();
+           return statisticControllerEntityLoader.getEmptyStatisticsEntity();
         }
-        return StatisticControllerEntityLoader.getStatisticsEntity(siteRepository, pageRepository, lemmaRepository);
+        return statisticControllerEntityLoader.getStatisticsEntity();
     }
 
 }

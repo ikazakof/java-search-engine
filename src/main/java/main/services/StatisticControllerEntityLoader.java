@@ -3,22 +3,33 @@ package main.services;
 import main.data.model.Lemma;
 import main.data.model.Page;
 import main.data.model.Site;
-import main.data.model.Status;
 import main.data.repository.LemmaRepository;
 import main.data.repository.PageRepository;
 import main.data.repository.SiteRepository;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+@Component
 public class StatisticControllerEntityLoader {
 
-    public static ResponseEntity<JSONObject> getEmptyStatisticsEntity(){
+    @Autowired
+    SiteStatusChecker siteStatusChecker;
+    @Autowired
+    SiteRepository siteRepository;
+    @Autowired
+    PageRepository pageRepository;
+    @Autowired
+    LemmaRepository lemmaRepository;
+
+    public ResponseEntity<JSONObject> getEmptyStatisticsEntity(){
         JSONParser parser = new JSONParser();
         ResponseEntity<JSONObject> resultJson = null;
 
@@ -41,11 +52,11 @@ public class StatisticControllerEntityLoader {
         return resultJson;
     }
 
-    public static ResponseEntity<JSONObject> getStatisticsEntity(SiteRepository siteRepository, PageRepository pageRepository, LemmaRepository lemmaRepository) {
+    public ResponseEntity<JSONObject> getStatisticsEntity() {
         JSONParser parser = new JSONParser();
         ResponseEntity<JSONObject> resultJson = null;
 
-        boolean isIndexing = SiteStatusChecker.indexingSitesExist(siteRepository);
+        boolean isIndexing = siteStatusChecker.indexingSitesExist();
 
         StringBuilder result = new StringBuilder();
         result.append("{\n\"result\": true,\n\"statistics\": {\n\"total\": {\n\"sites\": ").append(siteRepository.count()).append(",\n\"pages\": ").append(pageRepository.count()).append(",\n\"lemmas\": ").append(lemmaRepository.count());

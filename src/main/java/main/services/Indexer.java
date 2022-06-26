@@ -1,9 +1,12 @@
 package main.services;
 
+import lombok.NoArgsConstructor;
 import main.data.model.Index;
 import main.data.model.Lemma;
 import main.data.model.Site;
 import main.data.repository.SiteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,9 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+@Component
+@NoArgsConstructor
 public class Indexer {
 
-    public static ArrayList<Index> getIndexes(TreeMap<Integer, TreeMap<Lemma, Float>> lemmasResult, HashMap<String, Lemma> lemmasResultToDB, SiteRepository siteRepository){
+    @Autowired
+    SiteRepository siteRepository;
+
+    public ArrayList<Index> getIndexes(TreeMap<Integer, TreeMap<Lemma, Float>> lemmasResult, HashMap<String, Lemma> lemmasResultToDB){
         ArrayList<Index> result = new ArrayList<>();
         Site targetSite;
         for(Map.Entry<Integer, TreeMap<Lemma, Float>> page : lemmasResult.entrySet()){

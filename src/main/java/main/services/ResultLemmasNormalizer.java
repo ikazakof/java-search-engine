@@ -4,7 +4,6 @@ import lombok.Getter;
 import main.data.model.Lemma;
 
 import java.util.HashMap;
-import java.util.TreeMap;
 
 public class ResultLemmasNormalizer {
 

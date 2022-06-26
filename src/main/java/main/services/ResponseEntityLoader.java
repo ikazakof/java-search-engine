@@ -1,19 +1,26 @@
 package main.services;
 
 
+import lombok.NoArgsConstructor;
 import main.data.model.Site;
 import main.data.model.Status;
 import main.data.repository.SiteRepository;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
-
+@Component
+@NoArgsConstructor
 public class ResponseEntityLoader {
 
-    public static ResponseEntity<JSONObject> getIndexingAlreadyStartResponse(){
+    @Autowired
+    SiteRepository siteRepository;
+
+    public ResponseEntity<JSONObject> getIndexingAlreadyStartResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -25,7 +32,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.FORBIDDEN);
     }
 
-    public static ResponseEntity<JSONObject> getControllerMethodStartResponse(){
+    public ResponseEntity<JSONObject> getControllerMethodStartResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
         try {
@@ -36,7 +43,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
-    public static ResponseEntity<JSONObject> getIndexingNotStartResponse(){
+    public ResponseEntity<JSONObject> getIndexingNotStartResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -48,7 +55,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.FORBIDDEN);
     }
 
-    public static ResponseEntity<JSONObject> getPageOutOfRangeResponse(){
+    public ResponseEntity<JSONObject> getPageOutOfRangeResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -60,7 +67,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.NOT_FOUND);
     }
 
-    public static ResponseEntity<JSONObject> getEmptySearchQueryResponse(){
+    public ResponseEntity<JSONObject> getEmptySearchQueryResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -72,7 +79,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.NOT_FOUND);
     }
 
-    public static ResponseEntity<JSONObject> getSiteNotFoundResponse(){
+    public ResponseEntity<JSONObject> getSiteNotFoundResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -84,7 +91,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.NOT_FOUND);
     }
 
-    public static ResponseEntity<JSONObject> getIndexedSitesNotFoundResponse(){
+    public ResponseEntity<JSONObject> getIndexedSitesNotFoundResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -96,7 +103,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.NOT_FOUND);
     }
 
-    public static ResponseEntity<JSONObject> getSearchMatchesNotFoundResponse(){
+    public ResponseEntity<JSONObject> getSearchMatchesNotFoundResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -108,7 +115,7 @@ public class ResponseEntityLoader {
         return new ResponseEntity<>(result,HttpStatus.NOT_FOUND);
     }
 
-    public static ResponseEntity<JSONObject> getRelevantPagesNotFoundResponse(){
+    public ResponseEntity<JSONObject> getRelevantPagesNotFoundResponse(){
         JSONParser parser = new JSONParser();
         JSONObject result = new JSONObject();
 
@@ -121,7 +128,7 @@ public class ResponseEntityLoader {
     }
 
 
-    public static ResponseEntity<JSONObject> getSiteIndexingOrEmptyPagesResponse(SiteRepository siteRepository, Site targetSite){
+    public ResponseEntity<JSONObject> getSiteIndexingOrEmptyPagesResponse(Site targetSite){
         JSONParser parser = new JSONParser();
         ResponseEntity<JSONObject> resultJson = null;
         try {
@@ -134,7 +141,7 @@ public class ResponseEntityLoader {
         return resultJson;
     }
 
-    public static ResponseEntity<JSONObject> getSiteIndexingOrEmptyLemmasResponse(SiteRepository siteRepository, Site targetSite){
+    public ResponseEntity<JSONObject> getSiteIndexingOrEmptyLemmasResponse(Site targetSite){
         JSONParser parser = new JSONParser();
         ResponseEntity<JSONObject> resultJson = null;
         try {
@@ -147,7 +154,7 @@ public class ResponseEntityLoader {
         return resultJson;
     }
 
-    public static ResponseEntity<JSONObject> getSiteIndexingOrEmptyIndexesResponse(SiteRepository siteRepository, Site targetSite){
+    public ResponseEntity<JSONObject> getSiteIndexingOrEmptyIndexesResponse(Site targetSite){
         JSONParser parser = new JSONParser();
         ResponseEntity<JSONObject> resultJson = null;
         try {

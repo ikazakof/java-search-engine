@@ -27,24 +27,17 @@ public class SearchResultEntityLoader {
         return resultSites;
     }
 
-    public ResponseEntity<JSONObject> getSearchResultJson(int limit, int offset, List<FoundPage> foundPages){
-        int pageLimit = (limit == 0 ? 20 + offset : limit + offset);
-        if(pageLimit > foundPages.size()){
-            pageLimit = foundPages.size();
-        }
-        if(offset > foundPages.size()){
-            offset = 0;
-        }
+    public ResponseEntity<JSONObject> getSearchResultJson(List<FoundPage> foundPages){
         StringBuilder result = new StringBuilder();
         result.append("{\n\"result\": true,\n \"count\": ").append(foundPages.size()).append(",\n \"data\": [\n");
-        for (; offset < pageLimit; offset++){
-            result.append("{\n \"site\": \"").append(this.sites.get(foundPages.get(offset).getSiteId()).getUrl()).append("\",\n");
-            result.append("\"siteName\": \"").append(this.sites.get(foundPages.get(offset).getSiteId()).getName()).append("\",\n");
-            result.append("\"uri\": \"").append(foundPages.get(offset).getUri()).append("\",\n");
-            result.append("\"title\": \"").append(foundPages.get(offset).getTitle()).append("\",\n");
-            result.append("\"snippet\": \"").append(foundPages.get(offset).getSnippet()).append("\",\n");
-            result.append("\"relevance\": \"").append(foundPages.get(offset).getRelevance()).append("\"\n}");
-            if(offset != pageLimit - 1){
+        for (int counter = 0; counter < foundPages.size(); counter++){
+            result.append("{\n \"site\": \"").append(this.sites.get(foundPages.get(counter).getSiteId()).getUrl()).append("\",\n");
+            result.append("\"siteName\": \"").append(this.sites.get(foundPages.get(counter).getSiteId()).getName()).append("\",\n");
+            result.append("\"uri\": \"").append(foundPages.get(counter).getUri()).append("\",\n");
+            result.append("\"title\": \"").append(foundPages.get(counter).getTitle()).append("\",\n");
+            result.append("\"snippet\": \"").append(foundPages.get(counter).getSnippet()).append("\",\n");
+            result.append("\"relevance\": \"").append(foundPages.get(counter).getRelevance()).append("\"\n}");
+            if(counter != foundPages.size() - 1){
                 result.append(",\n");
             }
         }

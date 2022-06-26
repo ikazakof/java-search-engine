@@ -1,15 +1,22 @@
 package main.services;
 
-import main.data.model.Index;
+import lombok.NoArgsConstructor;
 import main.data.model.Lemma;
 import main.data.repository.LemmaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 
 import java.util.HashMap;
 
-
+@Component
+@NoArgsConstructor
 public class LemmasFrequencyReducer {
-    public static void reduceLemmasFrequency(HashMap<String, Lemma> existingLemmas, LemmaRepository lemmaRepository){
+
+    @Autowired
+    LemmaRepository lemmaRepository;
+
+    public void reduceLemmasFrequency(HashMap<String, Lemma> existingLemmas ){
         existingLemmas.forEach((lemmaName, lemma) -> {
                 lemma.decreaseFrequency();
                 lemmaRepository.save(lemma);

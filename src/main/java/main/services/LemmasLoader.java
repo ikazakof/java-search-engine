@@ -1,18 +1,28 @@
 package main.services;
 
+import lombok.NoArgsConstructor;
 import main.data.model.Index;
 import main.data.model.Lemma;
 import main.data.model.Site;
 import main.data.model.Status;
 import main.data.repository.LemmaRepository;
 import main.data.repository.SiteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@Component
+@NoArgsConstructor
 public class LemmasLoader {
 
-public static HashMap<String, Lemma> loadSiteLemmasFromDB(int siteId, LemmaRepository lemmaRepository){
+    @Autowired
+    LemmaRepository lemmaRepository;
+    @Autowired
+    SiteRepository siteRepository;
+
+public HashMap<String, Lemma> loadSiteLemmasFromDB(int siteId){
     HashMap<String, Lemma> tempLemmas = new HashMap<>();
     lemmaRepository.findAll().forEach(lemma -> {
         if(lemma.getSiteId() == siteId) {
@@ -22,7 +32,7 @@ public static HashMap<String, Lemma> loadSiteLemmasFromDB(int siteId, LemmaRepos
     return tempLemmas;
 }
 
-public static HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, Index> existingIndexes, LemmaRepository lemmaRepository){
+public HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, Index> existingIndexes){
     HashMap<String, Lemma> tempLemmas = new HashMap<>();
     ArrayList<Integer> existLemmasId = new ArrayList<>();
     existingIndexes.forEach((indexId, index) -> {
@@ -37,7 +47,7 @@ public static HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, 
     return tempLemmas;
 }
 
-    public static HashMap<Integer, Lemma> loadSiteLemmasFromDBWithFreq(int siteId, LemmaRepository lemmaRepository, long allPageCount) {
+    public HashMap<Integer, Lemma> loadSiteLemmasFromDBWithFreq(int siteId, long allPageCount) {
         HashMap<Integer, Lemma> tempLemmas = new HashMap<>();
         lemmaRepository.findAll().forEach(lemma -> {
             if (lemma.getSiteId() == siteId && !lemmaFrequencyIsOften(lemma, allPageCount)) {
@@ -47,7 +57,7 @@ public static HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, 
         return tempLemmas;
     }
 
-    public static HashMap<Integer, Lemma> loadLemmasFromDBWithFreqAndIndexedSites(SiteRepository siteRepository, LemmaRepository lemmaRepository, long allPageCount) {
+    public HashMap<Integer, Lemma> loadLemmasFromDBWithFreqAndIndexedSites(long allPageCount) {
         HashMap<Integer, Lemma> tempLemmas = new HashMap<>();
         for(Site siteFromDb : siteRepository.findAll()) {
             if (!siteFromDb.getStatus().equals(Status.INDEXED)) {
@@ -62,7 +72,7 @@ public static HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, 
         return tempLemmas;
     }
 
-    private static boolean lemmaFrequencyIsOften(Lemma lemma, long allPageCount){
+    private boolean lemmaFrequencyIsOften(Lemma lemma, long allPageCount){
         return lemma.getFrequency() >= (allPageCount) - (allPageCount / 100) * 60;
     }
 

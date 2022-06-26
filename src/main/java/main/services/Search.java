@@ -2,11 +2,12 @@ package main.services;
 
 import main.data.model.Index;
 import main.data.model.Lemma;
-import java.util.*;
 
+import java.util.*;
 public class Search {
 
     private String searchPhrase;
+    private int lemmasCountFromSearchPhrase;
     private Collection<Lemma> lemmasFromDB;
     private List<Index> indexFromDB;
     private List<Lemma> searchLemmas;
@@ -35,6 +36,7 @@ public class Search {
 
         HashSet<String> lemmas = new HashSet<>();
         new LemmFactory(phraseWords).getLemms().forEach(lemma -> lemmas.add(lemma));
+        this.lemmasCountFromSearchPhrase = lemmas.size();
         List<Lemma> lemmaForSearch = new ArrayList<>();
         lemmasFromDB.forEach(lemma -> {
             if(lemmas.contains(lemma.getLemma())){
@@ -50,14 +52,14 @@ public class Search {
         return searchPhrase.replaceAll("\n", "").replaceAll("[^А-я\\s]","").replaceAll("\\s{2,}", " ").strip().toLowerCase();
     }
 
-    private HashMap<Integer, List<Index>> searchRelevantPages(List<Lemma> searchLemmas){
+    public HashMap<Integer, List<Index>> searchRelevantPages(List<Lemma> searchLemmas){
         if(searchLemmas.isEmpty()){
             return new HashMap<>();
         }
         ArrayList<Index> foundIndexes = new ArrayList<>();
         HashMap<Integer, List<Index>> tempRelevantPages = new HashMap<>();
-
-        foundIndexes.addAll(IndexLoader.loadIndexFromListByLemmas(indexFromDB, searchLemmas));
+        IndexLoader indexLoader = new IndexLoader();
+        foundIndexes.addAll(indexLoader.loadIndexFromListByLemmas(indexFromDB, searchLemmas));
 
         if(foundIndexes.isEmpty()){
             return new HashMap<>();
@@ -76,7 +78,7 @@ public class Search {
 
         HashMap<Integer, List<Index>> resultPages = new HashMap<>();
         tempRelevantPages.forEach((page, indexes) ->{
-            if(indexes.size() == searchPhrase.split(" ").length){
+            if(indexes.size() == lemmasCountFromSearchPhrase){
                 resultPages.put(page, indexes);
             }
         });
