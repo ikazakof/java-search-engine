@@ -16,25 +16,37 @@ public class SiteConnector {
     public SiteConnector(String userAgent, String siteUrl) {
         this.userAgent = userAgent;
         this.siteUrl = siteUrl;
-        getCachedResource();
+        setCachedResource();
     }
 
-    private void getCachedResource(){
+    private void setCachedResource(){
         try {
            cachedResource = Jsoup.connect(siteUrl).userAgent(userAgent).referrer("http://www.google.com").ignoreHttpErrors(true).maxBodySize(0).execute();
            Thread.sleep(   650);
-        } catch (IOException | InterruptedException exception) {
+        } catch (IOException | NullPointerException | InterruptedException exception ) {
             exception.printStackTrace();
         }
     }
 
+    public Connection.Response getCachedResource() {
+        return cachedResource;
+    }
+
     public int getStatusCode(){
-        return this.cachedResource.statusCode();
+        int stat = 0;
+        try {
+            if (this.cachedResource != null){
+                stat = this.cachedResource.statusCode();
+            }
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return stat;
     }
 
     public Document getSiteDocument(){
         if(this.cachedResource == null){
-            return null;
+            return new Document("");
         }
         Document result = null;
         try {

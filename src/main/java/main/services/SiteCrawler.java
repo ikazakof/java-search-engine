@@ -5,6 +5,7 @@ import main.data.model.Page;
 import main.data.model.Site;
 import main.data.repository.SiteRepository;
 import main.data.model.Status;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.util.*;
@@ -62,7 +63,7 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
     private TreeMap<String, Page> getUrlsAndPages(String url){
         TreeMap<String, Page> urlsAndPages = new TreeMap<>();
         SiteConnector parentSiteConnector = new SiteConnector(userAgent, url);
-        if(parentSiteConnector.getSiteDocument() == null){
+        if(parentSiteConnector.getCachedResource() == null){
             return new TreeMap<>();
         }
         for(Site siteFromDB : siteRepository.findAll()){
@@ -71,7 +72,7 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
             break;
             }
         }
-        if(parentSiteConnector.getSiteDocument() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
+        if(parentSiteConnector.getCachedResource() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
             return new TreeMap<>();
         }
         for(Element href : parentSiteConnector.getSiteDocument().body().select("a[href]")){
@@ -90,7 +91,7 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
     }
 
     private boolean checkHref(Element href){
-        return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.avi|.mpeg|.doc|.ppt|.rtf).*");
+        return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("go?") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.avi|.mpeg|.doc|.ppt|.rtf).*");
     }
 
 

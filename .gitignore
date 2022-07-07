@@ -24,6 +24,9 @@
 *.tar.gz
 *.rar
 
+#Configuration
+*.yml
+
 #But not RussianMorphology
 
 !morphology-1.5.jar

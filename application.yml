@@ -9,12 +9,15 @@ started:
     name: Галерея Нико
   - url: http://radiomv.ru
     name: Радио Милицейская Волна
-#  - url: https://www.lutherancathedral.ru
-#    name: Кафедральный собор святых Петра и Павла
+  - url: https://www.lutherancathedral.ru
+    name: Кафедральный собор святых Петра и Павла
   - url: https://ipfran.ru
     name: ИПФ РАН
-  - url: https://volochek.life
-    name: Вышний Волочек
+  - url: http://www.playback.ru/
+    name: Интернет-магазин playback.ru
+  - url: https://dimonvideo.ru/
+    name: DimonVideo - программы | игры | фильмы | книги
+
   field:
     - name: title
       selector: title
