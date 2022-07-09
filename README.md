@@ -10,4 +10,6 @@
 <li>Library - JSOUP 1.20.2</li>
 <li>Library - Lombok 1.18.24</li>
 <li>Library - Json-simple 1.1.1</li>
+<li>FrontEnd - HTML, CSS, JavaScript</li>
 </ol>
+<p>Java search engine is designed for multi-threaded indexing of a specified group of sites with subsequent search by their content.</p>
