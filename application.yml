@@ -1,11 +1,10 @@
-spring.datasource.url: jdbc:mysql://localhost:3306/search_engine?useSSL=false
-spring.datasource.username: searchEngineAdm
-spring.datasource.password: dWeg4Df!!
-spring.jpa.hibernate.ddl-auto: none
+spring.datasource.url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&createDatabaseIfNotExist=true&characterEncoding=utf-8&engine=InnoDB
+spring.datasource.username: enter username
+spring.datasource.password: enter password
+spring.jpa.hibernate.ddl-auto: create
 started:
   sites:
   - url: https://nikoartgallery.com
-#  - /afisha
     name: Галерея Нико
   - url: http://radiomv.ru
     name: Радио Милицейская Волна
@@ -26,4 +25,4 @@ started:
       selector: body
       weight: 0.8
 user-agent:
-    name: FastSearchBot/1.0
+  name: FastSearchBot/1.0

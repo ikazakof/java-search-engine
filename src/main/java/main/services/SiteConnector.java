@@ -22,8 +22,8 @@ public class SiteConnector {
     private void setCachedResource(){
         try {
            cachedResource = Jsoup.connect(siteUrl).userAgent(userAgent).referrer("http://www.google.com").ignoreHttpErrors(true).maxBodySize(0).execute();
-           Thread.sleep(   650);
-        } catch (IOException | NullPointerException | InterruptedException exception ) {
+           Thread.sleep(650);
+        } catch (Exception exception ) {
             exception.printStackTrace();
         }
     }
@@ -51,7 +51,7 @@ public class SiteConnector {
         Document result = null;
         try {
             result = this.cachedResource.parse();
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
         }
         return result;

@@ -102,7 +102,7 @@ public class Lemmatizer extends RecursiveTask<TreeMap<Integer, TreeMap<Lemma, Fl
         }
 
         private String cleanElement(Element element){
-            return element.toString().replaceAll("\n", "").replaceAll("[^А-я\\s]"," ").replaceAll("\\s{2,}", " ").strip().toLowerCase();
+            return element.toString().replaceAll("\n", "").replaceAll("\r", " ").replaceAll("[^А-я\\s]"," ").replaceAll("\\s{2,}", " ").toLowerCase().strip();
         }
 
         private void addResultFromTasks(TreeMap<Integer, TreeMap<Lemma, Float>> result, List<Lemmatizer> tasks){

@@ -5,7 +5,6 @@ import main.data.model.Page;
 import main.data.model.Site;
 import main.data.repository.SiteRepository;
 import main.data.model.Status;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.util.*;
@@ -75,14 +74,17 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
         if(parentSiteConnector.getCachedResource() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
             return new TreeMap<>();
         }
-        for(Element href : parentSiteConnector.getSiteDocument().body().select("a[href]")){
-            if(!checkHref(href) || urlsAndPages.containsKey(href.attr("abs:href") )){
+        for(Element href : parentSiteConnector.getSiteDocument().body().select("a[href]")) {
+            if (!checkHref(href) || urlsAndPages.containsKey(href.attr("abs:href"))) {
                 continue;
             }
 
             SiteConnector childSiteConnector = new SiteConnector(userAgent, href.attr("abs:href"));
-            if(href.attr("abs:href").compareTo(href.attr("href")) == 0){
-                urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href").replaceAll(siteRepository.findById(parentSiteId).get().getUrl(), ""), childSiteConnector.getStatusCode(), childSiteConnector.getSiteDocument().toString(), parentSiteId));
+            if (childSiteConnector.getCachedResource() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || childSiteConnector.getSiteDocument().body().select("a[href]").size() == 0) {
+                continue;
+            }
+            if (href.attr("abs:href").compareTo(href.attr("href")) == 0) {
+                urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href").replaceAll(siteRepository.findById(parentSiteId).get().getUrl(), ""), childSiteConnector.getStatusCode(),childSiteConnector.getSiteDocument().toString(), parentSiteId));
             } else {
                 urlsAndPages.put(href.attr("abs:href"), new Page(href.attr("href"), childSiteConnector.getStatusCode(), childSiteConnector.getSiteDocument().toString(), parentSiteId));
             }
@@ -91,7 +93,7 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
     }
 
     private boolean checkHref(Element href){
-        return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("go?") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.avi|.mpeg|.doc|.ppt|.rtf).*");
+        return href.attr("abs:href").matches(parentSiteUrl + ".{2,}") && href.attr("abs:href").matches(siteUrl + ".{2,}") && !href.attr("abs:href").equals(siteUrl)   && !href.attr("abs:href").contains("#") && !href.attr("abs:href").contains("?method") && !href.attr("abs:href").contains("go?") && !href.attr("abs:href").contains("vkontakte") && !href.attr("abs:href").toLowerCase().matches(".*(.jpg|.png|.jpeg|.pdf|.pptx|.docx|.txt|.svg|.xlsx|.xls|.xml|.avi|.mpeg|.doc|.ppt|.rtf|.gif).*");
     }
 
 
