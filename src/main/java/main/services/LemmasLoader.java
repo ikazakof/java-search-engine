@@ -77,7 +77,10 @@ public HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, Index> 
     }
 
     private boolean lemmaFrequencyIsOften(Lemma lemma, long allPageCount){
-        return lemma.getFrequency() >= (allPageCount) - (allPageCount / 100) * (100 - percent);
+        if(percent >= 100){
+            return false;
+        }
+        return lemma.getFrequency() > (allPageCount) - (allPageCount / 100.00) * (100 - percent);
     }
 
 }

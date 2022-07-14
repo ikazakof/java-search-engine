@@ -106,7 +106,7 @@ public class RelevantPageLoader {
     private ArrayList<String> cleanElements(String[] elements){
         ArrayList<String> cleanElementsList = new ArrayList<>();
         for(String element : elements){
-            String tempElement = element.replaceAll("&nbsp;", " ").replaceAll("(<.*?>|<!--.*?-->|/\\*.*?\\*/|[^А-я\\sA-z0-9.,!])", "").replaceAll("\\s{2,}", " ").strip();
+            String tempElement = element.replaceAll("&nbsp;", " ").replaceAll("(<.*?>|<!--.*?-->|/\\*.*?\\*/|[^А-я\\sA-z0-9.,!:;])", "").replaceAll("\\s{2,}", " ").strip();
             if(tempElement.matches(".*[А-я]+.*")){
                 cleanElementsList.add(tempElement);
             }

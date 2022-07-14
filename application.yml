@@ -25,7 +25,7 @@ started:
       selector: body
       weight: 0.8
 
-# the maximum percentage of occurrence of lema from the total number of pages
+# the maximum percentage of the appearance of the Lema from the total number of pages in the search
 lemma-frequency:
   percent: 40
 

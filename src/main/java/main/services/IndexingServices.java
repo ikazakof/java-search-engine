@@ -110,6 +110,9 @@ public class IndexingServices {
         SiteConnector siteConnector = new SiteConnector(userAgent, url);
         targetPage.setAnswerCode(siteConnector.getStatusCode());
         targetPage.setPageContent(siteConnector.getSiteDocument().toString());
+        targetPage.setSiteId(targetSite.getId());
+        targetPage.setPath(targetUrl);
+        pageRepository.save(targetPage);
 
         List<Page> resultPagesList = new ArrayList<>();
         resultPagesList.add(resultPageLoader.getCorrectlyResponsivePage(targetPage));
