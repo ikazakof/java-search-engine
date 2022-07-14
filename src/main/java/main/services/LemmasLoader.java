@@ -8,6 +8,7 @@ import main.data.model.Status;
 import main.data.repository.LemmaRepository;
 import main.data.repository.SiteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ import java.util.HashMap;
 @Component
 @NoArgsConstructor
 public class LemmasLoader {
+
+    @Value("${lemma-frequency.percent}")
+    int percent;
 
     @Autowired
     LemmaRepository lemmaRepository;
@@ -73,7 +77,7 @@ public HashMap<String, Lemma> loadLemmasFromDBWithIndex(HashMap<Integer, Index> 
     }
 
     private boolean lemmaFrequencyIsOften(Lemma lemma, long allPageCount){
-        return lemma.getFrequency() >= (allPageCount) - (allPageCount / 100) * 60;
+        return lemma.getFrequency() >= (allPageCount) - (allPageCount / 100) * (100 - percent);
     }
 
 }

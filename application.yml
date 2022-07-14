@@ -24,5 +24,10 @@ started:
     - name: body
       selector: body
       weight: 0.8
+
+# the maximum percentage of occurrence of lema from the total number of pages
+lemma-frequency:
+  percent: 40
+
 user-agent:
   name: FastSearchBot/1.0
