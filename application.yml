@@ -27,7 +27,7 @@ started:
 
 # the maximum percentage of the appearance of the Lema from the total number of pages in the search
 lemma-frequency:
-  percent: 40
+  percent: 60
 
 user-agent:
   name: FastSearchBot/1.0
