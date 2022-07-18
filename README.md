@@ -21,7 +21,7 @@
 <li>Configure application.yml:
 <p>Type username and password for connect to database with corresponding rights;</p>
 <p>Type sites url and name.</p>
-<p>Type the maximum percentage of the appearance of the Lema from the total number of pages in the search. <b>DEFAULT = 40%</b></p>
+<p>Type the maximum percentage of the appearance of the Lema from the total number of pages in the search. <b>DEFAULT = 60%</b></p>
 </li>
 <li>Configure your IDE:
 <p>Increase Xmx memory in VM options: -Xmx4096m;</p>
