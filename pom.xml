@@ -31,7 +31,46 @@
 
 
     <dependencies>
-
+         <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>morph</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/lib/morph-1.5.jar</systemPath>
+        </dependency>
+             
+        <dependency>
+            <groupId>org.apache.lucene.analysis</groupId>
+            <artifactId>morphology</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/lib/morphology-1.5.jar</systemPath>
+        </dependency>
+             
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>dictionary-reader</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/lib/dictionary-reader-1.5.jar</systemPath>
+        </dependency>
+             
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>english</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/lib/english-1.5.jar</systemPath>
+        </dependency>
+             
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>russian</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/lib/russian-1.5.jar</systemPath>
+        </dependency>
+             
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
