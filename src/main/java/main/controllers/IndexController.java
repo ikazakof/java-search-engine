@@ -40,6 +40,7 @@ public class IndexController {
         dbCleaner.cleanDB();
         dbParamLoader.loadStartParam();
         for (Site siteFromDB : siteRepository.findAll()) {
+            siteConditionsChanger.changeSiteConditionsStartIndexing(siteFromDB);
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute(()-> indexingServices.indexTargetSite(siteFromDB));
             executor.shutdown();
