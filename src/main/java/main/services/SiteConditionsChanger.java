@@ -16,6 +16,13 @@ public class SiteConditionsChanger {
     @Autowired
     SiteRepository siteRepository;
 
+    public void changeSiteConditionsStartIndexing(Site site){
+        site.setStatus(Status.INDEXING);
+        site.setLastError(null);
+        site.setStatusTime(LocalDateTime.now());
+        siteRepository.save(site);
+    }
+    
     public void changeSiteConditionsEmptyPages(Site site){
             site.setStatus(Status.FAILED);
             site.setLastError("Страницы отсутсвуют");
