@@ -2,7 +2,7 @@
 
 <p>The Java search engine is designed for multi-threaded indexing of a given group of sites with subsequent search by their content (Russian words).</p>
 <p>The optimal speed of the program is ensured by:</p>
-<li>Performing indexing process of each site/page or search process in a separate thread</li> 
+<li>Performing indexing process of each site/page in a separate thread</li> 
 <li>Using of ForkJoinPool for recursive crawling of the site and lemmatization of its pages.</li>
 <br>
 <p>Search engine developed on stack of technology:<p>
