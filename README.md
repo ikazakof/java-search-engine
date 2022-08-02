@@ -8,7 +8,7 @@
 <p>Search engine developed on stack of technology:<p>
 
 <li>Syntax - Java 11</li>
-<li>Framework - Springframework 2.1.4</li>
+<li>Framework - Springframework</li>
 <li>Framework - Russianmorphology 1.5</li>
 <li>Database - MySQL 8.0.26</li>
 <li>Library - JSOUP 1.20.2</li>
