@@ -64,7 +64,8 @@ public class IndexingServices {
         } else {
             synchronized (pageRepository) {
                 pageRepository.saveAll(results.values());
-            }}
+            }
+        }
 
         ForkJoinPool lemmaPool = new ForkJoinPool();
         Lemmatizer lemmatizer = new Lemmatizer(resultPageLoader.getCorrectlyResponsivePages(results.values()), fieldRepository.findAll(), targetSite.getId());
