@@ -14,7 +14,7 @@ import java.util.concurrent.RecursiveTask;
 @AllArgsConstructor
 public class Lemmatizer extends RecursiveTask<TreeMap<Integer, TreeMap<Lemma, Float>>>{
 
-        private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors();
+        private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 
         private List<Page> pagesToLemmatize;
 
@@ -35,8 +35,8 @@ public class Lemmatizer extends RecursiveTask<TreeMap<Integer, TreeMap<Lemma, Fl
             TreeMap<Integer, TreeMap<Lemma, Float>> result = new TreeMap<>();
             List<Lemmatizer> tasks = new ArrayList<>();
             threshold = 1;
-            if(pagesToLemmatize.size() > THREAD_COUNT){
-                threshold = pagesToLemmatize.size() / THREAD_COUNT;
+            if(pagesToLemmatize.size() > AVAILABLE_PROCESSORS){
+                threshold = pagesToLemmatize.size() / AVAILABLE_PROCESSORS;
             }
 
             if(pagesToLemmatize.size() <= threshold){

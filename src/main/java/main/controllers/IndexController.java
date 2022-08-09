@@ -14,22 +14,33 @@ import java.util.concurrent.Executors;
 
 @RestController
 public class IndexController {
-    @Autowired
+    final
     SiteRepository siteRepository;
-    @Autowired
+    final
     ResponseEntityLoader responseEntityLoader;
-    @Autowired
+    final
     DBCleaner dbCleaner;
-    @Autowired
+    final
     DBParamLoader dbParamLoader;
-    @Autowired
+    final
     SiteStatusChecker siteStatusChecker;
-    @Autowired
+    final
     IndexingServices indexingServices;
-    @Autowired
+    final
     SiteConditionsChanger siteConditionsChanger;
-    @Autowired
+    final
     IndexingPageChecker indexingPageChecker;
+    @Autowired
+    public IndexController(SiteRepository siteRepository, ResponseEntityLoader responseEntityLoader, DBCleaner dbCleaner, DBParamLoader dbParamLoader, SiteStatusChecker siteStatusChecker, IndexingServices indexingServices, SiteConditionsChanger siteConditionsChanger, IndexingPageChecker indexingPageChecker) {
+        this.siteRepository = siteRepository;
+        this.responseEntityLoader = responseEntityLoader;
+        this.dbCleaner = dbCleaner;
+        this.dbParamLoader = dbParamLoader;
+        this.siteStatusChecker = siteStatusChecker;
+        this.indexingServices = indexingServices;
+        this.siteConditionsChanger = siteConditionsChanger;
+        this.indexingPageChecker = indexingPageChecker;
+    }
 
 
     @GetMapping("/startIndexing")

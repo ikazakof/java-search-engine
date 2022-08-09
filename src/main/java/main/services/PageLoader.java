@@ -14,8 +14,12 @@ import java.util.Set;
 @NoArgsConstructor
 public class PageLoader {
 
-    @Autowired
     PageRepository pageRepository;
+
+    @Autowired
+    public PageLoader(PageRepository pageRepository) {
+        this.pageRepository = pageRepository;
+    }
 
     public HashMap<Integer, Page> loadSitePagesFromDB(int siteId){
         HashMap<Integer, Page> result = new HashMap<>();

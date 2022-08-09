@@ -18,8 +18,12 @@ import java.util.TreeMap;
 @NoArgsConstructor
 public class Indexer {
 
-    @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    public Indexer(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
+    }
 
     public ArrayList<Index> getIndexes(TreeMap<Integer, TreeMap<Lemma, Float>> lemmasResult, HashMap<String, Lemma> lemmasResultToDB){
         ArrayList<Index> result = new ArrayList<>();

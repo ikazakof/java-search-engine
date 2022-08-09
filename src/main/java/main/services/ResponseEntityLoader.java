@@ -17,8 +17,12 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class ResponseEntityLoader {
 
-    @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    public ResponseEntityLoader(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
+    }
 
     public ResponseEntity<JSONObject> getIndexingAlreadyStartResponse(){
         JSONParser parser = new JSONParser();

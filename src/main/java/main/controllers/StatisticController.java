@@ -13,10 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class StatisticController {
 
-    @Autowired
+    final
     SiteRepository siteRepository;
-    @Autowired
+    final
     StatisticControllerEntityLoader statisticControllerEntityLoader;
+    @Autowired
+    public StatisticController(SiteRepository siteRepository, StatisticControllerEntityLoader statisticControllerEntityLoader) {
+        this.siteRepository = siteRepository;
+        this.statisticControllerEntityLoader = statisticControllerEntityLoader;
+    }
 
     @GetMapping("/statistics")
     public ResponseEntity<JSONObject> statistics() {

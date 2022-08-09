@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class IndexingPageChecker {
 
-    @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    public IndexingPageChecker(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
+    }
 
     public boolean indexingPageInRange(String url){
         for(Site site : siteRepository.findAll()) {

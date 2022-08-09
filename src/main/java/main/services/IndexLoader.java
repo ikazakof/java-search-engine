@@ -13,8 +13,12 @@ import java.util.*;
 @NoArgsConstructor
 public class IndexLoader {
 
-    @Autowired
     IndexRepository indexRepository;
+
+    @Autowired
+    public IndexLoader(IndexRepository indexRepository) {
+        this.indexRepository = indexRepository;
+    }
 
     public HashMap<Integer, Index> loadIndexFromDB(int pageId){
         HashMap<Integer, Index> existingIndexes = new HashMap<>();

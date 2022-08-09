@@ -18,47 +18,47 @@ import java.util.HashMap;
 @Service
 @NoArgsConstructor
 public class SearchServices {
-    @Autowired
     SiteRepository siteRepository;
-    @Autowired
     PageRepository pageRepository;
-    @Autowired
     ResponseEntityLoader responseEntityLoader;
-    @Autowired
     SiteConditionsChanger siteConditionsChanger;
-    @Autowired
     SiteStatusChecker siteStatusChecker;
-    @Autowired
     IndexLoader indexLoader;
-    @Autowired
     LemmasLoader lemmasLoader;
-    @Autowired
     PageLoader pageLoader;
+
+    @Autowired
+    public SearchServices(SiteRepository siteRepository, PageRepository pageRepository, ResponseEntityLoader responseEntityLoader, SiteConditionsChanger siteConditionsChanger, SiteStatusChecker siteStatusChecker, IndexLoader indexLoader, LemmasLoader lemmasLoader, PageLoader pageLoader) {
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.responseEntityLoader = responseEntityLoader;
+        this.siteConditionsChanger = siteConditionsChanger;
+        this.siteStatusChecker = siteStatusChecker;
+        this.indexLoader = indexLoader;
+        this.lemmasLoader = lemmasLoader;
+        this.pageLoader = pageLoader;
+    }
 
 
     public ResponseEntity<JSONObject> getMatchesInSite(String site, String query){
-        ArrayList<Index> indexesFromDB = new ArrayList<>();
-        HashMap<Integer, Page> targetSitePages = new HashMap<>();
-        HashMap<Integer, Lemma> targetLemmas = new HashMap<>();
-
         Site targetSite = new Site();
         siteConditionsChanger.cloneSiteFromDB(targetSite, site);
         if(targetSite.getId() == 0){
             return responseEntityLoader.getSiteNotFoundResponse();
         }
 
-        targetSitePages.putAll(pageLoader.loadSitePagesFromDB(targetSite.getId()));
+        HashMap<Integer, Page> targetSitePages = new HashMap<>(pageLoader.loadSitePagesFromDB(targetSite.getId()));
         if(targetSitePages.size() == 0){
             return responseEntityLoader.getSiteIndexingOrEmptyPagesResponse(targetSite);
         }
 
-        targetLemmas.putAll(lemmasLoader.loadSiteLemmasFromDBWithFreq(targetSite.getId(), pageRepository.count()));
+        HashMap<Integer, Lemma> targetLemmas = new HashMap<>(lemmasLoader.loadSiteLemmasFromDBWithFreq(targetSite.getId(), pageRepository.count()));
 
         if(targetLemmas.size() == 0){
             return  responseEntityLoader.getSiteIndexingOrEmptyLemmasResponse(targetSite);
         }
 
-        indexesFromDB.addAll(indexLoader.loadIndexFromDBByPageIdAndLemmas(targetSitePages.keySet(), targetLemmas.keySet()));
+        ArrayList<Index> indexesFromDB = new ArrayList<>(indexLoader.loadIndexFromDBByPageIdAndLemmas(targetSitePages.keySet(), targetLemmas.keySet()));
         if(indexesFromDB.size() == 0){
             return  responseEntityLoader.getSiteIndexingOrEmptyIndexesResponse(targetSite);
         }
@@ -66,11 +66,9 @@ public class SearchServices {
         if (search.getFoundPages().isEmpty()){
             return responseEntityLoader.getSearchMatchesNotFoundResponse();
         }
-        ArrayList<Page> relevantPages = new ArrayList<>();
-        relevantPages.addAll(pageLoader.loadPagesByIdFromTargetPages(targetSitePages, search.getFoundPages().keySet()));
+        ArrayList<Page> relevantPages = new ArrayList<>(pageLoader.loadPagesByIdFromTargetPages(targetSitePages, search.getFoundPages().keySet()));
 
-        ArrayList<Lemma> relevantLemmas = new ArrayList<>();
-        relevantLemmas.addAll(search.getSearchLemmas());
+        ArrayList<Lemma> relevantLemmas = new ArrayList<>(search.getSearchLemmas());
 
         RelevantPageLoader relevantPageLoader = new RelevantPageLoader(relevantPages, relevantLemmas, search.getFoundPages());
         if (relevantPageLoader.getRelevantPages().isEmpty()){
@@ -81,26 +79,21 @@ public class SearchServices {
     }
 
     public ResponseEntity<JSONObject> getMatchesInSites(String query){
-        ArrayList<Index> indexesFromDB = new ArrayList<>();
-        HashMap<Integer, Lemma> targetLemmas = new HashMap<>();
-
         if(!siteStatusChecker.indexedSitesExist()){
             return responseEntityLoader.getIndexedSitesNotFoundResponse();
         }
 
-        targetLemmas.putAll(lemmasLoader.loadLemmasFromDBWithFreqAndIndexedSites(pageRepository.count()));
-        indexesFromDB.addAll(indexLoader.loadIndexFromDBByLemmas(targetLemmas.keySet()));
+        HashMap<Integer, Lemma> targetLemmas = new HashMap<>(lemmasLoader.loadLemmasFromDBWithFreqAndIndexedSites(pageRepository.count()));
+        ArrayList<Index> indexesFromDB = new ArrayList<>(indexLoader.loadIndexFromDBByLemmas(targetLemmas.keySet()));
 
         Search search = new Search(query, targetLemmas.values(), indexesFromDB);
         if (search.getFoundPages().isEmpty()){
             return responseEntityLoader.getSearchMatchesNotFoundResponse();
         }
 
-        ArrayList<Page> relevantPages = new ArrayList<>();
-        relevantPages.addAll(pageLoader.loadPagesByIDFromPagesRepository(search.getFoundPages().keySet()));
+        ArrayList<Page> relevantPages = new ArrayList<>(pageLoader.loadPagesByIDFromPagesRepository(search.getFoundPages().keySet()));
 
-        ArrayList<Lemma> relevantLemmas = new ArrayList<>();
-        relevantLemmas.addAll(search.getSearchLemmas());
+        ArrayList<Lemma> relevantLemmas = new ArrayList<>(search.getSearchLemmas());
 
         RelevantPageLoader relevantPageLoader = new RelevantPageLoader(relevantPages, relevantLemmas, search.getFoundPages());
 

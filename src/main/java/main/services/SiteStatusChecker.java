@@ -11,8 +11,12 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class SiteStatusChecker {
 
-    @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    public SiteStatusChecker(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
+    }
 
     public boolean indexingSitesExist(){
         for (Site site : siteRepository.findAll()) {

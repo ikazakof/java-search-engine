@@ -13,8 +13,12 @@ import java.util.HashMap;
 @NoArgsConstructor
 public class LemmasFrequencyReducer {
 
-    @Autowired
     LemmaRepository lemmaRepository;
+
+    @Autowired
+    public LemmasFrequencyReducer(LemmaRepository lemmaRepository) {
+        this.lemmaRepository = lemmaRepository;
+    }
 
     public void reduceLemmasFrequency(HashMap<String, Lemma> existingLemmas ){
         existingLemmas.forEach((lemmaName, lemma) -> {

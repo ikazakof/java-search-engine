@@ -21,12 +21,16 @@ public class LemmasLoader {
     @Value("${lemma-frequency.percent}")
     int percent;
 
-    @Autowired
     LemmaRepository lemmaRepository;
-    @Autowired
     SiteRepository siteRepository;
 
-public HashMap<String, Lemma> loadSiteLemmasFromDB(int siteId){
+    @Autowired
+    public LemmasLoader(LemmaRepository lemmaRepository, SiteRepository siteRepository) {
+        this.lemmaRepository = lemmaRepository;
+        this.siteRepository = siteRepository;
+    }
+
+    public HashMap<String, Lemma> loadSiteLemmasFromDB(int siteId){
     HashMap<String, Lemma> tempLemmas = new HashMap<>();
     lemmaRepository.findAll().forEach(lemma -> {
         if(lemma.getSiteId() == siteId) {

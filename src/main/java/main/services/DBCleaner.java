@@ -9,16 +9,20 @@ import org.springframework.stereotype.Component;
 @Component
 @NoArgsConstructor
 public class DBCleaner {
-    @Autowired
     SiteRepository siteRepository;
-    @Autowired
     PageRepository pageRepository;
-    @Autowired
     LemmaRepository lemmaRepository;
-    @Autowired
     IndexRepository indexRepository;
-    @Autowired
     FieldRepository fieldRepository;
+
+    @Autowired
+    public DBCleaner(SiteRepository siteRepository, PageRepository pageRepository, LemmaRepository lemmaRepository, IndexRepository indexRepository, FieldRepository fieldRepository) {
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
+        this.fieldRepository = fieldRepository;
+    }
 
     public void cleanDB(){
         siteRepository.deleteAll();

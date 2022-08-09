@@ -13,12 +13,18 @@ import java.util.Objects;
 @RestController
 public class SearchController {
 
-    @Autowired
+    final
     ResponseEntityLoader responseEntityLoader;
-    @Autowired
+    final
     SearchServices searchServices;
-    @Autowired
+    final
     SearchResultEntityOffseter searchResultEntityOffseter;
+    @Autowired
+    public SearchController(ResponseEntityLoader responseEntityLoader, SearchServices searchServices, SearchResultEntityOffseter searchResultEntityOffseter) {
+        this.responseEntityLoader = responseEntityLoader;
+        this.searchServices = searchServices;
+        this.searchResultEntityOffseter = searchResultEntityOffseter;
+    }
 
     @GetMapping("/search")
     public ResponseEntity<JSONObject> search(@RequestParam String query, @RequestParam(required = false)  String site, @RequestParam int offset, @RequestParam int limit) {

@@ -20,30 +20,34 @@ public class IndexingServices {
     @Value("${user-agent.name}")
     String userAgent;
 
-    @Autowired
     SiteRepository siteRepository;
-    @Autowired
     PageRepository pageRepository;
-    @Autowired
     LemmaRepository lemmaRepository;
-    @Autowired
     IndexRepository indexRepository;
-    @Autowired
     FieldRepository fieldRepository;
-    @Autowired
     SiteConditionsChanger siteConditionsChanger;
-    @Autowired
     ResultPageLoader resultPageLoader;
-    @Autowired
     Indexer indexer;
-    @Autowired
     IndexingPageClone indexingPageClone;
-    @Autowired
     IndexLoader indexLoader;
-    @Autowired
     LemmasLoader lemmasLoader;
-    @Autowired
     LemmasFrequencyReducer lemmasFrequencyReducer;
+
+    @Autowired
+    public IndexingServices(IndexingPageClone indexingPageClone, SiteRepository siteRepository, PageRepository pageRepository, LemmaRepository lemmaRepository, IndexRepository indexRepository, FieldRepository fieldRepository, SiteConditionsChanger siteConditionsChanger, ResultPageLoader resultPageLoader, LemmasFrequencyReducer lemmasFrequencyReducer, Indexer indexer, IndexLoader indexLoader, LemmasLoader lemmasLoader) {
+        this.indexingPageClone = indexingPageClone;
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
+        this.fieldRepository = fieldRepository;
+        this.siteConditionsChanger = siteConditionsChanger;
+        this.resultPageLoader = resultPageLoader;
+        this.lemmasFrequencyReducer = lemmasFrequencyReducer;
+        this.indexer = indexer;
+        this.indexLoader = indexLoader;
+        this.lemmasLoader = lemmasLoader;
+    }
 
     public void indexTargetSite(Site targetSite){
         ForkJoinPool pagingPool = new ForkJoinPool();

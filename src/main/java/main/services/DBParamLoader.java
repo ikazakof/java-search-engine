@@ -10,12 +10,16 @@ import org.springframework.stereotype.Component;
 @Component
 @NoArgsConstructor
 public class DBParamLoader {
-    @Autowired
     SiteRepository siteRepository;
-    @Autowired
     FieldRepository fieldRepository;
-    @Autowired
     StartParamList startParamList;
+
+    @Autowired
+    public DBParamLoader(SiteRepository siteRepository, FieldRepository fieldRepository, StartParamList startParamList) {
+        this.siteRepository = siteRepository;
+        this.fieldRepository = fieldRepository;
+        this.startParamList = startParamList;
+    }
 
     public void loadStartParam(){
         fieldRepository.saveAll(startParamList.getField());

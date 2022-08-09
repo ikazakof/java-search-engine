@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class IndexingPageClone {
 
-    @Autowired
     PageRepository pageRepository;
+
+    @Autowired
+    public IndexingPageClone(PageRepository pageRepository) {
+        this.pageRepository = pageRepository;
+    }
 
     public void partiallyCloneTargetIndexingPage(Page targetPage, Page searchPage){
         for(Page page : pageRepository.findAll()){

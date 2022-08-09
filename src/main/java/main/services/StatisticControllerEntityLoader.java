@@ -20,14 +20,21 @@ import java.time.ZonedDateTime;
 @Component
 public class StatisticControllerEntityLoader {
 
-    @Autowired
+    final
     SiteStatusChecker siteStatusChecker;
-    @Autowired
+    final
     SiteRepository siteRepository;
-    @Autowired
+    final
     PageRepository pageRepository;
-    @Autowired
+    final
     LemmaRepository lemmaRepository;
+
+    public StatisticControllerEntityLoader(SiteStatusChecker siteStatusChecker, SiteRepository siteRepository, PageRepository pageRepository, LemmaRepository lemmaRepository) {
+        this.siteStatusChecker = siteStatusChecker;
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.lemmaRepository = lemmaRepository;
+    }
 
     public ResponseEntity<JSONObject> getEmptyStatisticsEntity(){
         JSONParser parser = new JSONParser();

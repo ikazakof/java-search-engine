@@ -71,7 +71,7 @@ public class SiteCrawler extends RecursiveTask<TreeMap<String, Page>> {
             break;
             }
         }
-        if(parentSiteConnector.getCachedResource() == null || siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
+        if(siteRepository.findById(parentSiteId).get().getStatus().equals(Status.FAILED) || parentSiteConnector.getSiteDocument().body().select("a[href]").size() == 0){
             return new TreeMap<>();
         }
         for(Element href : parentSiteConnector.getSiteDocument().body().select("a[href]")) {

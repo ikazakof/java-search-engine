@@ -13,8 +13,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class SiteConditionsChanger {
 
-    @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    public SiteConditionsChanger(SiteRepository siteRepository) {
+        this.siteRepository = siteRepository;
+    }
 
     public void changeSiteConditionsStartIndexing(Site site){
         site.setStatus(Status.INDEXING);
