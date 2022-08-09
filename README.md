@@ -1,18 +1,35 @@
 <h1 align="center">java-search-engine</h1>
 
 <p>The Java search engine is designed for multi-threaded indexing of a given group of sites with subsequent search by their content (Russian words).</p>
+<p>The optimal speed of the program is ensured by:</p>
+<li>Performing indexing process of each site/page in a separate thread</li> 
+<li>Using of ForkJoinPool for recursive crawling of the site and lemmatization of its pages.</li>
+<br>
 <p>Search engine developed on stack of technology:<p>
 
 <li>Syntax - Java 11</li>
-<li>Framework - Springframework 2.1.4</li>
-<li>Framework - Russianmorphology 1.5</li>
+<li>Framework - Springframework</li>
 <li>Database - MySQL 8.0.26</li>
+<li>Library - Russianmorphology 1.5</li>
 <li>Library - JSOUP 1.20.2</li>
 <li>Library - Lombok 1.18.24</li>
 <li>Library - Json-simple 1.1.1</li>
 <li>FrontEnd - HTML, CSS, JavaScript</li>
 
-<h2 align="left">Prepare and start project</h2>
+<h2 align="left">Try live DEMO</h2>
+<h3><a href=http://212.193.49.63:8080>Open live demo</a> and go to "Indexing and search" chapter, point 2.</h3>
+<ol>
+    <li>Hosting:
+    <p><a href=https://simplecloud.ru>Simple Cloud</a></p>
+    </li>
+    <li>Server characteristics:
+    <p>Processor: 1 core 2Ghz;</p>
+    <p>Memory: 2 Gb;</p>
+    <p>SSD: 20 GB.</b>
+    </li>
+    </ol>
+
+<h2 align="left">Prepare and start project on your device</h2>
 <ol>
 <li>Install prerequisites:
 <p>Install MySQL 8.0.26 or later.</p>
@@ -62,3 +79,4 @@ Page must be member of one target site.
 <img src="https://media.giphy.com/media/o0xCsP3HgxTZJUBAg6/giphy.gif"></p>
 </li>
 </ol>
+
